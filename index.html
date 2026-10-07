@@ -1,0 +1,2077 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>我的钱包</title>
+<!-- 单文件版：CSS 和 JS 都已内联，可以单独发给别人 -->
+<!-- iPhone / iPad：加到主屏幕后全屏运行，看起来像个小 App -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="我的钱包">
+<meta name="theme-color" content="#3d7eff">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAACoUlEQVR42u3cwW3CQBRFUTdGFfTjCthRBRWwowpXwI4lFQwaUQEjsJj3j6W7SyR7fBII/pPlsLYmpbRYBAEtAS0BLQEtoCWgJaAloCWgBbQEtAS0BLQEtICWgJaAloCWgBbQEtAS0BLQEtACWgJaAloCWgJaQEtAS0BLQEtAC2gJaAloCWgBbSEEtAS0BLRUDPRta0NH/760G1p9LRY3EuakNVj8dmrtfJ3/2vs1eJUKfA+93cdu7HqZ95r7uY8cfa28h/7zjqfWHs86qEcx9zXqawU01DADDTXMQEMNM9DfRP2PN7+fE8zFnxSmIEj74QS68Mt0tU9vgA5GDTPQMahhBjoGNcxARz0urvgYH+jQgZ7Kg1ZAh41cGgMFOgYQzEDHQIIZ6BjUMAMd88eY3SZAx3xcZrcJ0DEPNIyBAh2DGmagY1DDDHQMapiBjhmst9sE6JhdL3abAB01dmoMFOgo1DADXRo1zEDHoIYZ6BjUMAM95a4Xu02AjpvQMzkHdCRqmIEGWkB7ywG0fogbYqCBFtBAAy2ggRbQQAMtoIEW0EADnZHjfQANNNBAAw000EADDTTQQAMNNNBAAw000EADDTTQQAMNNNBAAz31fMVeffJPGfvX7nluQMtwEtBAAw000AIaaAENNNACGmiggQYaaAENtIAGGmizHGY5gAYaaKCBBhpooIEGGmiggQYaaKCBBhpooIEGGmiggQYaaKCBtuvbrm+gDScJaKCBFtBAC2iggQYaaKAFNNBAC2igBTTQQFsvoCWgBbQEtAS0BLQEtICWgJaAloCWgBbQEtAS0BLQEtACWgJaAloCWkBbBAEtAS0BLQEtoCWgJaAloCWgBbQEtAS0BLQEtICWgJaAloCWgBbQEtAS0BLQEtDK7gVbT9CBMehLGQAAAABJRU5ErkJggg==">
+<style>
+/* 我的钱包 — 样式
+ * 手机 App 风格：单列竖屏，最大 480px，桌面浏览器里居中显示成一部长手机。
+ * 颜色全部走 CSS 变量，想换主题改最上面那一段就够了。
+ */
+
+:root {
+  --bg: #eef1f6;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --line: #e8ebf0;
+  --brand: #3d7eff;
+  --brand-ink: #ffffff;
+  --good: #16a34a;
+  --warn: #f59e0b;
+  --bad: #e5484d;
+  --radius: 16px;
+  --shadow: 0 2px 12px rgba(17, 24, 39, .06);
+  --tap: rgba(61, 126, 255, .08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1216;
+    --card: #171b21;
+    --text: #e8eaed;
+    --muted: #9aa3ae;
+    --line: #262c34;
+    --brand: #5b93ff;
+    --good: #34d399;
+    --warn: #fbbf24;
+    --bad: #ff6b6b;
+    --shadow: 0 2px 12px rgba(0, 0, 0, .4);
+    --tap: rgba(91, 147, 255, .14);
+  }
+}
+
+* { box-sizing: border-box; }
+
+/* 重要：.mask 之类的类选择器是"作者样式"，会盖掉浏览器默认的 [hidden]{display:none}，
+ * 结果就是 hidden 属性形同虚设、弹层一直显示。这条兜底规则必须留着。 */
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei",
+               "PingFang SC", "Hiragino Sans GB", sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+body { display: flex; justify-content: center; }
+
+.phone {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  padding: 14px 14px 40px;
+  background: var(--bg);
+}
+
+/* ---------------------------------------------------------------- 顶栏 */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px 10px;
+}
+
+.brand { font-size: 19px; font-weight: 700; letter-spacing: .5px; }
+
+.monthbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.month-label {
+  min-width: 140px;
+  padding: 6px 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.month-label:hover { background: var(--tap); }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.icon-btn:hover { background: var(--tap); }
+.icon-btn:disabled { opacity: .3; cursor: default; }
+
+/* ---------------------------------------------------------------- 卡片 */
+
+.card {
+  padding: 16px;
+  margin-bottom: 12px;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.card-head h2 { margin: 0; font-size: 15px; font-weight: 700; }
+
+.muted { color: var(--muted); font-size: 12px; }
+
+/* -------------------------------------------------- 存不下数据时的警告 */
+
+.warn-banner {
+  position: sticky;
+  top: 0;
+  z-index: 40;              /* 必须低于 .mask 的 50，不然会盖住弹层 */
+  margin: -14px -14px 12px; /* 顶到 .phone 两边，看起来像一条横幅 */
+  padding: 11px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #fff;
+  background: var(--bad);
+  border-radius: 0 0 12px 12px;
+}
+.warn-banner b { font-weight: 700; }
+
+/* -------------------------------------------------- 主角：还剩多少 */
+
+.hero { padding: 18px 16px 14px; }
+
+.hero-title { font-size: 13px; color: var(--muted); }
+
+.hero-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  margin: 4px 0 2px;
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--good);
+}
+.hero-amount .cur { font-size: 22px; font-weight: 600; }
+.hero-amount.is-warn { color: var(--warn); }
+.hero-amount.is-over { color: var(--bad); }
+.hero-amount.is-plain { color: var(--text); }
+
+.hero-sub { margin-bottom: 12px; font-size: 13px; color: var(--muted); }
+
+.progress {
+  height: 8px;
+  overflow: hidden;
+  background: var(--line);
+  border-radius: 999px;
+}
+.progress-fill {
+  width: 0;
+  height: 100%;
+  background: var(--good);
+  border-radius: 999px;
+  transition: width .35s ease, background-color .35s ease;
+}
+.progress-fill.is-warn { background: var(--warn); }
+.progress-fill.is-over { background: var(--bad); }
+
+.hero-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 22px;
+  margin-top: 8px;
+}
+
+.link-btn {
+  padding: 2px 6px;
+  font-size: 13px;
+  color: var(--brand);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.link-btn:hover { background: var(--tap); }
+
+.alert {
+  margin-top: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--bad);
+  background: rgba(229, 72, 77, .1);
+  border-radius: 10px;
+}
+.alert b { font-variant-numeric: tabular-nums; }
+
+/* -------------------------------------------------------- 三个小数字 */
+
+.stats3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.stat {
+  padding: 12px 10px;
+  text-align: center;
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+.stat-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.stat-value {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.stat-value.out { color: var(--bad); }
+.stat-value.in { color: var(--good); }
+
+/* -------------------------------------------------------------- 按钮 */
+
+.actions { display: grid; gap: 10px; margin-bottom: 16px; }
+
+.btn {
+  padding: 12px 16px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform .06s ease, opacity .15s ease;
+}
+.btn:active { transform: scale(.985); }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn-big { width: 100%; padding: 15px 16px; font-size: 16px; }
+.btn-sm { padding: 8px 12px; font-size: 13px; font-weight: 500; }
+.btn-plus { font-weight: 700; }
+
+.btn-primary {
+  color: var(--brand-ink);
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.btn-ghost { color: var(--brand); background: transparent; border-color: var(--line); }
+.btn-danger { color: #fff; background: var(--bad); border-color: var(--bad); }
+
+/* -------------------------------------------------------------- 图表 */
+
+.chart-block { margin-top: 14px; }
+.chart-block:first-of-type { margin-top: 4px; }
+.chart-block h3 { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.chart-body { min-height: 40px; }
+
+.donut-flex { display: flex; align-items: center; gap: 12px; }
+.donut { flex: 0 0 132px; width: 132px; height: 132px; }
+.donut-top { font-size: 11px; fill: var(--muted); }
+.donut-main {
+  font-size: 17px;
+  font-weight: 800;
+  fill: var(--text);
+}
+
+.legend {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  font-size: 12.5px;
+}
+.legend .dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+}
+.legend .lg-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.legend .lg-pct { color: var(--muted); font-variant-numeric: tabular-nums; }
+.legend .lg-amt { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.bars { display: block; width: 100%; height: auto; }
+.bar { fill: var(--brand); opacity: .85; }
+.bar-today { fill: var(--warn); opacity: 1; }
+.bar-empty { fill: var(--line); }
+.bar-tick { font-size: 9px; fill: var(--muted); }
+.bar-max { font-size: 9.5px; fill: var(--muted); }
+
+.empty {
+  margin: 6px 0;
+  padding: 14px 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* -------------------------------------------------------------- 明细 */
+
+.record-list { margin-top: 4px; }
+
+.day-group { margin-top: 10px; }
+.day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 4px 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.day-head .day-total { font-variant-numeric: tabular-nums; }
+
+.record {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 6px;
+  border-bottom: 1px solid var(--line);
+}
+.record:last-child { border-bottom: none; }
+
+.rec-icon {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  background: var(--bg);
+  border-radius: 50%;
+}
+.rec-main { flex: 1 1 auto; min-width: 0; }
+.rec-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.rec-note {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tag {
+  padding: 1px 6px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--bg);
+  border-radius: 999px;
+}
+.rec-amt {
+  flex: 0 0 auto;
+  font-size: 14.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.rec-amt.out { color: var(--bad); }
+.rec-amt.in { color: var(--good); }
+
+.rec-del {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  font-size: 13px;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.rec-del:hover { color: var(--bad); background: rgba(229, 72, 77, .1); }
+
+.footer-note {
+  margin: 18px 4px 0;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ---------------------------------------------------------- 底部弹层 */
+
+.mask {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(15, 18, 22, .45);
+  animation: fade .16s ease;
+}
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+.sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  animation: slideUp .22s cubic-bezier(.22, .8, .3, 1);
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.sheet-title { flex: 1 1 auto; margin: 0; font-size: 16px; text-align: center; }
+.sheet-spacer { flex: 0 0 32px; }
+
+.tabs {
+  flex: 1 1 auto;
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--bg);
+  border-radius: 10px;
+}
+.tab {
+  flex: 1 1 0;
+  padding: 7px 0;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.tab.is-active { color: var(--text); background: var(--card); box-shadow: var(--shadow); }
+
+.sheet-body {
+  padding: 14px 16px calc(20px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+}
+
+.amount-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--line);
+}
+.amount-row .cur { font-size: 24px; font-weight: 600; color: var(--muted); }
+.amount-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+.amount-input::placeholder { color: var(--line); }
+
+.preview {
+  min-height: 20px;
+  margin: 8px 2px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.preview b { color: var(--text); font-variant-numeric: tabular-nums; }
+.preview.is-over b { color: var(--bad); }
+
+.field-label {
+  margin: 16px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.danger-label { color: var(--bad); }
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.cat-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 2px;
+  font-family: inherit;
+  font-size: 11.5px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.cat-btn .cat-icon { font-size: 19px; line-height: 1.2; }
+.cat-btn.is-active {
+  background: var(--tap);
+  border-color: var(--brand);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.field-row { display: flex; gap: 10px; }
+.field-row .field { flex: 1 1 0; min-width: 0; }
+.field { display: flex; flex-direction: column; gap: 5px; margin-top: 14px; }
+.field > span { font-size: 12.5px; color: var(--muted); }
+.field input,
+.field select,
+.text-input,
+.select-input {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  outline: none;
+}
+.field input:focus,
+.text-input:focus,
+.select-input:focus { border-color: var(--brand); }
+
+.inline-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.inline-row .text-input { flex: 1 1 auto; }
+/* 按钮别被输入框挤成两行（"保 存"很难看） */
+.inline-row .btn { flex: 0 0 auto; white-space: nowrap; }
+.cat-add-row .icon-input { flex: 0 0 58px; text-align: center; }
+.cat-add-row .select-input { flex: 0 0 84px; }
+
+.hint { margin: 6px 0 0; font-size: 11.5px; line-height: 1.7; color: var(--muted); }
+
+.error {
+  margin: 12px 0 0;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--bad);
+  background: rgba(229, 72, 77, .1);
+  border-radius: 10px;
+}
+
+.cat-manage { display: flex; flex-direction: column; }
+.cat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 2px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.cat-row .cat-row-name { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.cat-row .cat-row-type { font-size: 11px; color: var(--muted); }
+.cat-row .cat-del {
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--bad);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.cat-row .cat-del:hover { background: rgba(229, 72, 77, .1); border-color: var(--bad); }
+
+#saveRecord { margin-top: 18px; }
+
+/* -------------------------------------------------------------- 吐司 */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 90;
+  max-width: 88vw;
+  padding: 11px 16px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #fff;
+  background: rgba(17, 24, 39, .93);
+  border-radius: 12px;
+  transform: translateX(-50%);
+  animation: toastIn .2s ease;
+}
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- 数据存不下来时的红色警告（iPhone 直接打开本地文件、无痕模式等会走到这里）
+       由 app.js 根据 wallet.persistent 决定要不要显示 -->
+  <div id="storageWarn" class="warn-banner" hidden>
+    ⚠️ <b>这个浏览器不让网页保存数据</b>，你现在记的账一关掉页面就会全没。
+    <span id="storageWarnTip"></span>
+  </div>
+
+  <!-- 顶部：标题 + 设置 -->
+  <header class="topbar">
+    <div class="brand">我的钱包</div>
+    <button id="btnSettings" class="icon-btn" title="设置" aria-label="设置">⚙️</button>
+  </header>
+
+  <!-- 月份切换 -->
+  <div class="monthbar">
+    <button id="prevMonth" class="icon-btn" title="上个月" aria-label="上个月">‹</button>
+    <button id="monthLabel" class="month-label" title="回到本月">2025年1月</button>
+    <button id="nextMonth" class="icon-btn" title="下个月" aria-label="下个月">›</button>
+  </div>
+
+  <!-- 主角：本月还剩多少（减法的主战场） -->
+  <section class="card hero" id="hero">
+    <div class="hero-title" id="heroTitle">本月还剩</div>
+    <div class="hero-amount">
+      <span class="cur">¥</span><span id="heroRemaining">0.00</span>
+    </div>
+    <div class="hero-sub" id="heroSub">还没有设置预算</div>
+    <div class="progress"><div class="progress-fill" id="heroProgress"></div></div>
+    <div class="hero-foot">
+      <span id="heroHint" class="muted"></span>
+      <button id="btnSetBudget" class="link-btn">设置预算</button>
+    </div>
+    <div class="alert" id="overAlert" hidden>
+      ⚠️ 已超出预算 <b id="overAmount">¥0.00</b>。还能继续记，但接下来要省着点了。
+    </div>
+  </section>
+
+  <!-- 三个小数字：加法（收入）和净结余 -->
+  <section class="stats3">
+    <div class="stat">
+      <div class="stat-label">本月支出 −</div>
+      <div class="stat-value out" id="statSpent">¥0.00</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">本月收入 +</div>
+      <div class="stat-value in" id="statIncome">¥0.00</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">结余（收−支）</div>
+      <div class="stat-value" id="statNet">¥0.00</div>
+    </div>
+  </section>
+
+  <!-- 记一笔 -->
+  <section class="actions">
+    <button id="btnAddExpense" class="btn btn-primary btn-big">
+      <span class="btn-plus">＋</span> 记一笔支出
+    </button>
+    <button id="btnAddIncome" class="btn btn-ghost btn-big">
+      <span class="btn-plus">＋</span> 记一笔收入
+    </button>
+  </section>
+
+  <!-- 图表 -->
+  <section class="card">
+    <div class="card-head"><h2>图表统计</h2><span class="muted" id="chartMonth"></span></div>
+    <div class="chart-block">
+      <h3>支出花在哪了</h3>
+      <div id="donut" class="chart-body"></div>
+    </div>
+    <div class="chart-block">
+      <h3>每天花了多少</h3>
+      <div id="bars" class="chart-body"></div>
+    </div>
+  </section>
+
+  <!-- 明细 -->
+  <section class="card">
+    <div class="card-head"><h2>明细</h2><span class="muted" id="recordCount"></span></div>
+    <div id="recordList" class="record-list"></div>
+  </section>
+
+  <p class="footer-note">
+    数据只保存在这台电脑的浏览器里（localStorage）。<br>
+    清除浏览器数据 / 换浏览器 / 换电脑，账目就看不到了。
+  </p>
+</div>
+
+<!-- ==================== 记一笔：底部弹层 ==================== -->
+<div id="sheet" class="mask" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="记一笔">
+    <div class="sheet-head">
+      <button id="sheetClose" class="icon-btn" aria-label="关闭">✕</button>
+      <div class="tabs">
+        <button id="tabExpense" class="tab is-active" type="button">支出</button>
+        <button id="tabIncome" class="tab" type="button">收入</button>
+      </div>
+      <span class="sheet-spacer"></span>
+    </div>
+
+    <div class="sheet-body">
+      <div class="amount-row">
+        <span class="cur">¥</span>
+        <input id="amountInput" class="amount-input" type="text" inputmode="decimal"
+               autocomplete="off" placeholder="0.00" aria-label="金额">
+      </div>
+
+      <!-- 记完后余额会变成多少：让"加减同时进行"看得见 -->
+      <div class="preview" id="preview"></div>
+
+      <div class="field-label">分类</div>
+      <div id="catGrid" class="cat-grid"></div>
+
+      <div class="field-row">
+        <label class="field">
+          <span>日期</span>
+          <input id="dateInput" type="date">
+        </label>
+        <label class="field">
+          <span id="methodLabel">支付方式</span>
+          <select id="methodSelect"></select>
+        </label>
+      </div>
+
+      <label class="field">
+        <span>备注（可选）</span>
+        <input id="noteInput" type="text" maxlength="40" placeholder="比如：和室友吃火锅">
+      </label>
+
+      <div id="sheetError" class="error" hidden></div>
+      <button id="saveRecord" class="btn btn-primary btn-big">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 设置：底部弹层 ==================== -->
+<div id="settings" class="mask" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="设置">
+    <div class="sheet-head">
+      <button id="settingsClose" class="icon-btn" aria-label="关闭">✕</button>
+      <h2 class="sheet-title">设置</h2>
+      <span class="sheet-spacer"></span>
+    </div>
+
+    <div class="sheet-body">
+      <div class="field-label" id="budgetLabel">本月预算</div>
+      <div class="inline-row">
+        <input id="budgetInput" class="text-input" type="text" inputmode="decimal" placeholder="例如 1500">
+        <button id="saveBudget" class="btn btn-primary">保存</button>
+      </div>
+      <div class="inline-row">
+        <button id="clearBudget" class="btn btn-ghost btn-sm">这个月不设预算</button>
+      </div>
+      <p class="hint" id="budgetHint"></p>
+      <div id="budgetError" class="error" hidden></div>
+
+      <div class="field-label">分类管理</div>
+      <p class="hint">删除分类前，得先处理掉用到它的记录。</p>
+      <div id="catManage" class="cat-manage"></div>
+      <div class="inline-row cat-add-row">
+        <input id="newCatIcon" class="text-input icon-input" type="text" maxlength="2" placeholder="🍜" aria-label="图标">
+        <input id="newCatName" class="text-input" type="text" maxlength="8" placeholder="新分类名称" aria-label="新分类名称">
+        <select id="newCatType" class="select-input" aria-label="分类类型">
+          <option value="expense">支出</option>
+          <option value="income">收入</option>
+        </select>
+        <button id="addCat" class="btn btn-primary">添加</button>
+      </div>
+      <div id="catError" class="error" hidden></div>
+
+      <div class="field-label danger-label">危险操作</div>
+      <button id="clearAll" class="btn btn-danger btn-big">清空所有数据</button>
+      <p class="hint">
+        数据存在浏览器本地（localStorage），不会上传到任何地方，也不花钱。<br>
+        但目前<b>没有导出备份</b>功能：清浏览器数据 = 账目全没。想要导出的话跟我说一声，加一个按钮就行。
+      </p>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script>
+/* 我的钱包 — 数据层
+ *
+ * 这个文件只负责"数据怎么算、怎么存"，完全不碰界面。
+ * 好处：算钱的逻辑可以单独测试，界面随便改都不会算错账。
+ *
+ * 两条铁律：
+ *   1. 金额一律用"分"存整数（15.50 元存成 1550），避免 0.1 + 0.2 = 0.30000000000000004 这种小数误差。
+ *   2. 支出 = 减法（扣预算），收入 = 加法（不影响预算，只影响结余）。两者同时记在同一张账上。
+ */
+(function (root) {
+  'use strict';
+
+  var KEY = 'wallet.v1';
+
+  /** 支付方式（记一笔时可选的渠道） */
+  var METHODS = ['微信', '支付宝', '现金', '银行卡', '其他'];
+
+  /** 新月份没有单独设预算时，最多往前找 24 个月沿用 */
+  var INHERIT_LIMIT = 24;
+
+  /** 一套大学生常用的默认分类，可以在"设置"里自己增删改 */
+  var DEFAULT_CATEGORIES = [
+    { id: 'c-food',    name: '吃饭',     icon: '🍚', type: 'expense' },
+    { id: 'c-traffic', name: '交通',     icon: '🚌', type: 'expense' },
+    { id: 'c-study',   name: '学习',     icon: '📚', type: 'expense' },
+    { id: 'c-daily',   name: '日用',     icon: '🧴', type: 'expense' },
+    { id: 'c-fun',     name: '娱乐',     icon: '🎮', type: 'expense' },
+    { id: 'c-phone',   name: '话费网费', icon: '📱', type: 'expense' },
+    { id: 'c-med',     name: '医疗',     icon: '💊', type: 'expense' },
+    { id: 'c-other',   name: '其他',     icon: '📦', type: 'expense' },
+    { id: 'i-living',  name: '生活费',   icon: '🏠', type: 'income'  },
+    { id: 'i-job',     name: '兼职',     icon: '💼', type: 'income'  },
+    { id: 'i-gift',    name: '红包',     icon: '🧧', type: 'income'  },
+    { id: 'i-award',   name: '奖学金',   icon: '🏆', type: 'income'  },
+    { id: 'i-other',   name: '其他收入', icon: '➕', type: 'income'  }
+  ];
+
+  /* ---------------------------------------------------------------- 小工具 */
+
+  var seq = 0;
+  function uid(prefix) {
+    seq += 1;
+    return (prefix || 'id') + '-' + Date.now().toString(36) + '-' + seq.toString(36) +
+      Math.floor(Math.random() * 46656).toString(36);
+  }
+
+  function has(obj, k) { return Object.prototype.hasOwnProperty.call(obj, k); }
+  function pad2(n) { return n < 10 ? '0' + n : String(n); }
+
+  /** 把用户输入的文字（"15"、"15.5"、"￥15.50"）变成"分"，不合法返回 null */
+  function parseAmount(input) {
+    var s = String(input == null ? '' : input).trim().replace(/[¥￥,，\s]/g, '');
+    if (!/^\d{0,7}(\.\d{0,2})?$/.test(s)) return null; // 最多 7 位整数 + 2 位小数
+    if (!/\d/.test(s)) return null;
+    var n = Number(s);
+    if (!isFinite(n) || n <= 0) return null;
+    return Math.round(n * 100);
+  }
+
+  /** "分" → 显示用字符串，如 1550 → "15.50"、123456789 → "1,234,567.89" */
+  function formatMoney(cents) {
+    var v = Math.round(Number(cents) || 0);
+    var neg = v < 0;
+    v = Math.abs(v);
+    var yuan = Math.floor(v / 100);
+    var fen = v % 100;
+    var s = String(yuan).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + pad2(fen);
+    return (neg ? '-' : '') + s;
+  }
+
+  /** 转义用户输入，防止备注/分类名里的 < > 破坏页面 */
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function toCentsOrNull(v) {
+    if (v === null || v === undefined || v === '') return null;
+    var n = Number(v);
+    if (!isFinite(n) || n < 0) return null;
+    return Math.round(n);
+  }
+
+  /* -------------------------------------------------------------- 日期工具 */
+
+  function todayISO(d) {
+    var t = d ? new Date(d) : new Date();
+    return t.getFullYear() + '-' + pad2(t.getMonth() + 1) + '-' + pad2(t.getDate());
+  }
+
+  function isISODate(s) { return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s); }
+
+  /** "2025-06-12" → "2025-06" */
+  function monthKey(iso) { return String(iso).slice(0, 7); }
+
+  function currentMonthKey() { return monthKey(todayISO()); }
+
+  /** 月份前后移动，如 shiftMonth("2025-01", -1) → "2024-12" */
+  function shiftMonth(key, delta) {
+    var y = Number(key.slice(0, 4)), m = Number(key.slice(5, 7));
+    var d = new Date(y, m - 1 + delta, 1);
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1);
+  }
+
+  /** 日期前后移动，跨月跨年都对 */
+  function shiftDay(iso, delta) {
+    var y = Number(iso.slice(0, 4)), m = Number(iso.slice(5, 7)), d = Number(iso.slice(8, 10));
+    return todayISO(new Date(y, m - 1, d + delta));
+  }
+
+  function daysInMonth(key) {
+    var y = Number(key.slice(0, 4)), m = Number(key.slice(5, 7));
+    return new Date(y, m, 0).getDate();
+  }
+
+  function monthLabel(key) {
+    return Number(key.slice(0, 4)) + '年' + Number(key.slice(5, 7)) + '月';
+  }
+
+  function dateLabel(iso) {
+    var y = Number(iso.slice(0, 4)), m = Number(iso.slice(5, 7)), d = Number(iso.slice(8, 10));
+    var w = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][new Date(y, m - 1, d).getDay()];
+    return m + '月' + d + '日 ' + w;
+  }
+
+  /** "今天"/"昨天"/"前天"，其它返回空字符串 */
+  function relativeDay(iso, todayIso) {
+    var t = todayIso || todayISO();
+    if (iso === t) return '今天';
+    if (iso === shiftDay(t, -1)) return '昨天';
+    if (iso === shiftDay(t, -2)) return '前天';
+    return '';
+  }
+
+  /* ------------------------------------------------------------ 存取与容错 */
+
+  /** localStorage 用不了时的兜底：页面照常能记账，但数据只活在当前页面里 */
+  function memoryStorage() {
+    var mem = {};
+    return {
+      __memory: true, // 标记：这不是真的存盘，界面必须据此警告用户
+      getItem: function (k) { return has(mem, k) ? mem[k] : null; },
+      setItem: function (k, v) { mem[k] = String(v); },
+      removeItem: function (k) { delete mem[k]; }
+    };
+  }
+
+  /**
+   * 找一个"真的能存盘"的 localStorage，并如实报告能不能存。
+   *
+   * 为什么要探测而不是拿起来就用：写一下再读回来，才知道它是真存了还是被静默忽略了。
+   * persistent === false 时界面必须显眼地警告用户 —— 否则他会以为账存下来了，
+   * 关掉页面才发现全没了。
+   *
+   * 什么情况下是 false：
+   *   · iPhone / iPad 上用"文件"打开本地 html（file://）。MDN 明确写了 file: 协议下
+   *     localStorage 的行为是"未定义"的，Safari 上经常直接抛 SecurityError。
+   *   · 浏览器无痕模式，或开了"阻止网站保存数据"。
+   */
+  function detectStorage() {
+    try {
+      var ls = root.localStorage;
+      if (ls) {
+        var probe = KEY + '.probe';
+        ls.setItem(probe, '1');
+        var ok = ls.getItem(probe) === '1';
+        ls.removeItem(probe);
+        if (ok) return { storage: ls, persistent: true, reason: '' };
+        return { storage: memoryStorage(), persistent: false, reason: 'ignored' };
+      }
+    } catch (e) {
+      return { storage: memoryStorage(), persistent: false, reason: 'blocked' };
+    }
+    return { storage: memoryStorage(), persistent: false, reason: 'missing' };
+  }
+
+  /** 页面是不是用 file:// 打开的（双击本地 html 就是这种） */
+  function isLocalFile() {
+    try { return String(root.location && root.location.protocol) === 'file:'; }
+    catch (e) { return false; }
+  }
+
+  function defaultState() {
+    return {
+      version: 1,
+      budgets: {},              // { "2025-06": 150000 } 单位：分；null 表示"这个月我故意不设预算"
+      categories: DEFAULT_CATEGORIES.map(function (c) {
+        return { id: c.id, name: c.name, icon: c.icon, type: c.type };
+      }),
+      records: [],              // 所有账目，不分月份，按 date 过滤
+      lastMethod: METHODS[0],
+      lastCategory: { expense: 'c-food', income: 'i-living' }
+    };
+  }
+
+  /** 把读出来的脏数据洗干净；任何一处不合法都退回默认值，绝不让页面崩 */
+  function normalize(raw) {
+    var s = defaultState();
+    if (!raw || typeof raw !== 'object') return s;
+
+    if (raw.budgets && typeof raw.budgets === 'object') {
+      Object.keys(raw.budgets).forEach(function (k) {
+        if (!/^\d{4}-\d{2}$/.test(k)) return;
+        s.budgets[k] = toCentsOrNull(raw.budgets[k]); // null 是合法值，表示明确不设
+      });
+    }
+
+    if (Array.isArray(raw.categories) && raw.categories.length) {
+      var cats = [];
+      raw.categories.forEach(function (c) {
+        if (!c || typeof c !== 'object') return;
+        var name = String(c.name == null ? '' : c.name).trim().slice(0, 12);
+        if (!name) return;
+        cats.push({
+          id: (typeof c.id === 'string' && c.id) ? c.id : uid('cat'),
+          name: name,
+          icon: String(c.icon == null ? '' : c.icon).trim().slice(0, 4) || '🏷️',
+          type: c.type === 'income' ? 'income' : 'expense'
+        });
+      });
+      if (cats.length) {
+        // 保证两种类型都至少有一个分类，否则记账时会出现"没得选"
+        ['expense', 'income'].forEach(function (t) {
+          if (cats.some(function (c) { return c.type === t; })) return;
+          var fb = DEFAULT_CATEGORIES.filter(function (c) { return c.type === t; })[0];
+          cats.push({ id: fb.id, name: fb.name, icon: fb.icon, type: t });
+        });
+        s.categories = cats;
+      }
+    }
+
+    if (Array.isArray(raw.records)) {
+      raw.records.forEach(function (r) {
+        if (!r || typeof r !== 'object') return;
+        var amount = toCentsOrNull(r.amount);
+        if (amount === null || amount <= 0) return;
+        if (!isISODate(r.date)) return;
+        s.records.push({
+          id: (typeof r.id === 'string' && r.id) ? r.id : uid('rec'),
+          type: r.type === 'income' ? 'income' : 'expense',
+          amount: amount,
+          categoryId: typeof r.categoryId === 'string' ? r.categoryId : '',
+          date: r.date,
+          note: String(r.note == null ? '' : r.note).slice(0, 60),
+          method: String(r.method == null ? '' : r.method).slice(0, 8),
+          createdAt: Number(r.createdAt) || 0
+        });
+      });
+    }
+
+    if (METHODS.indexOf(raw.lastMethod) >= 0) s.lastMethod = raw.lastMethod;
+    if (raw.lastCategory && typeof raw.lastCategory === 'object') {
+      s.lastCategory.expense = String(raw.lastCategory.expense || s.lastCategory.expense);
+      s.lastCategory.income = String(raw.lastCategory.income || s.lastCategory.income);
+    }
+    return s;
+  }
+
+  function loadState(storage) {
+    try {
+      var txt = storage.getItem(KEY);
+      if (!txt) return defaultState();
+      return normalize(JSON.parse(txt));
+    } catch (e) {
+      return defaultState();
+    }
+  }
+
+  /* ------------------------------------------------------ 基于 state 的查询 */
+
+  function findCategory(state, id) {
+    for (var i = 0; i < state.categories.length; i++) {
+      if (state.categories[i].id === id) return state.categories[i];
+    }
+    return null;
+  }
+
+  function categoriesOf(state, type) {
+    return state.categories.filter(function (c) { return c.type === type; });
+  }
+
+  function recordsOfMonth(state, key) {
+    return state.records.filter(function (r) { return r.date.slice(0, 7) === key; });
+  }
+
+  /** 某月账目，按日期倒序（同一天按录入时间倒序） */
+  function monthRecords(state, key) {
+    return recordsOfMonth(state, key).slice().sort(function (a, b) {
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
+  }
+
+  function monthlyTotals(state, key) {
+    var spent = 0, income = 0;
+    state.records.forEach(function (r) {
+      if (r.date.slice(0, 7) !== key) return;
+      if (r.type === 'income') income += r.amount;
+      else spent += r.amount;
+    });
+    return { spent: spent, income: income, net: income - spent };
+  }
+
+  /**
+   * 这个月实际生效的预算。
+   * 优先用本月自己设的；没设过就往前沿用最近设过的那个月（界面上会标注"沿用 X 月"）。
+   * 如果本月被明确设为 null（取消预算），就真的没有预算。
+   */
+  function effectiveBudget(state, key) {
+    if (has(state.budgets, key)) {
+      var v = state.budgets[key];
+      return { amount: v, sourceKey: v === null ? null : key, inherited: false };
+    }
+    var k = key;
+    for (var i = 0; i < INHERIT_LIMIT; i++) {
+      k = shiftMonth(k, -1);
+      if (has(state.budgets, k) && state.budgets[k] !== null && state.budgets[k] > 0) {
+        return { amount: state.budgets[k], sourceKey: k, inherited: true };
+      }
+    }
+    return { amount: null, sourceKey: null, inherited: false };
+  }
+
+  /**
+   * 一个月的总览：这是整个软件的核心数字。
+   *   remaining = 预算 - 支出    ← 减法：每记一笔支出，这个数就变小
+   *   net       = 收入 - 支出    ← 加法与减法同时体现
+   */
+  function summary(state, key) {
+    var t = monthlyTotals(state, key);
+    var eff = effectiveBudget(state, key);
+    var hasBudget = eff.amount !== null && eff.amount > 0;
+    return {
+      key: key,
+      budget: hasBudget ? eff.amount : null,
+      budgetSourceKey: eff.sourceKey,
+      budgetInherited: eff.inherited,
+      hasBudget: hasBudget,
+      spent: t.spent,
+      income: t.income,
+      net: t.net,
+      remaining: hasBudget ? eff.amount - t.spent : null,
+      percent: hasBudget ? t.spent / eff.amount : 0,
+      over: hasBudget ? t.spent > eff.amount : false,
+      count: recordsOfMonth(state, key).length
+    };
+  }
+
+  /** 按分类汇总，从多到少 */
+  function categoryTotals(state, key, type) {
+    var map = {}, total = 0;
+    state.records.forEach(function (r) {
+      if (r.date.slice(0, 7) !== key) return;
+      if (type && r.type !== type) return;
+      map[r.categoryId] = (map[r.categoryId] || 0) + r.amount;
+      total += r.amount;
+    });
+    var list = Object.keys(map).map(function (id) {
+      var c = findCategory(state, id);
+      return {
+        id: id,
+        name: c ? c.name : '已删除分类',
+        icon: c ? c.icon : '❓',
+        value: map[id],
+        percent: total ? map[id] / total : 0
+      };
+    }).sort(function (a, b) { return b.value - a.value; });
+    return { list: list, total: total };
+  }
+
+  /** 某月每一天的支出/收入，用于柱状图 */
+  function dailyTotals(state, key) {
+    var out = [];
+    var days = daysInMonth(key);
+    for (var d = 1; d <= days; d++) {
+      out.push({ day: d, date: key + '-' + pad2(d), spent: 0, income: 0 });
+    }
+    state.records.forEach(function (r) {
+      if (r.date.slice(0, 7) !== key) return;
+      var i = Number(r.date.slice(8, 10)) - 1;
+      if (!out[i]) return;
+      if (r.type === 'income') out[i].income += r.amount;
+      else out[i].spent += r.amount;
+    });
+    return out;
+  }
+
+  /* ---------------------------------------------------------------- 钱包对象 */
+
+  /** 创建钱包：所有"会改数据"的操作都走这里，改完自动存盘 */
+  function createWallet(storageLike) {
+    var storage = storageLike || detectStorage().storage;
+    var state = loadState(storage);
+
+    function save() {
+      try { storage.setItem(KEY, JSON.stringify(state)); }
+      catch (e) { /* 存不进去也不能让软件崩，界面照常用 */ }
+    }
+
+    function addRecord(input) {
+      input = input || {};
+      var amount = toCentsOrNull(input.amount);
+      if (amount === null || amount <= 0) throw new Error('金额不正确');
+      if (!isISODate(input.date)) throw new Error('日期不正确');
+      var type = input.type === 'income' ? 'income' : 'expense';
+      var cat = findCategory(state, input.categoryId);
+      if (!cat || cat.type !== type) throw new Error('请选择一个分类');
+      var rec = {
+        id: uid('rec'),
+        type: type,
+        amount: amount,
+        categoryId: cat.id,
+        date: input.date,
+        note: String(input.note == null ? '' : input.note).trim().slice(0, 60),
+        method: String(input.method == null ? '' : input.method).trim().slice(0, 8),
+        createdAt: Date.now()
+      };
+      state.records.push(rec);
+      state.lastCategory[type] = cat.id;
+      if (rec.method && METHODS.indexOf(rec.method) >= 0) state.lastMethod = rec.method;
+      save();
+      return rec;
+    }
+
+    function deleteRecord(id) {
+      var before = state.records.length;
+      state.records = state.records.filter(function (r) { return r.id !== id; });
+      if (state.records.length === before) return false;
+      save();
+      return true;
+    }
+
+    /** cents 传 null = 取消这个月的预算 */
+    function setBudget(key, cents) {
+      if (!/^\d{4}-\d{2}$/.test(key)) throw new Error('月份不正确');
+      if (cents === null) state.budgets[key] = null;
+      else {
+        var v = toCentsOrNull(cents);
+        if (v === null || v <= 0) throw new Error('预算要大于 0');
+        state.budgets[key] = v;
+      }
+      save();
+      return state.budgets[key];
+    }
+
+    function addCategory(input) {
+      input = input || {};
+      var name = String(input.name == null ? '' : input.name).trim().slice(0, 12);
+      if (!name) throw new Error('分类名不能为空');
+      var type = input.type === 'income' ? 'income' : 'expense';
+      if (categoriesOf(state, type).some(function (c) { return c.name === name; })) {
+        throw new Error('已经有一个叫「' + name + '」的分类了');
+      }
+      var cat = {
+        id: uid('cat'),
+        name: name,
+        icon: String(input.icon == null ? '' : input.icon).trim().slice(0, 4) || '🏷️',
+        type: type
+      };
+      state.categories.push(cat);
+      save();
+      return cat;
+    }
+
+    function deleteCategory(id) {
+      var cat = findCategory(state, id);
+      if (!cat) return false;
+      var used = state.records.filter(function (r) { return r.categoryId === id; }).length;
+      if (used > 0) throw new Error('还有 ' + used + ' 笔账在用「' + cat.name + '」，先删掉或改掉那些记录');
+      if (categoriesOf(state, cat.type).length <= 1) throw new Error('每种类型至少留一个分类');
+      state.categories = state.categories.filter(function (c) { return c.id !== id; });
+      save();
+      return true;
+    }
+
+    function clearAll() {
+      state = defaultState();
+      save();
+      return state;
+    }
+
+    return {
+      get state() { return state; },
+      /** 数据能不能真的存下来。false = 关掉页面就没了，界面必须警告 */
+      get persistent() { return !storage.__memory; },
+      save: save,
+      addRecord: addRecord,
+      deleteRecord: deleteRecord,
+      setBudget: setBudget,
+      addCategory: addCategory,
+      deleteCategory: deleteCategory,
+      clearAll: clearAll
+    };
+  }
+
+  /* ------------------------------------------------------------------ 导出 */
+
+  root.WalletStore = {
+    KEY: KEY,
+    METHODS: METHODS,
+    DEFAULT_CATEGORIES: DEFAULT_CATEGORIES,
+    memoryStorage: memoryStorage,
+    detectStorage: detectStorage,
+    isLocalFile: isLocalFile,
+    defaultState: defaultState,
+    normalize: normalize,
+    loadState: loadState,
+    createWallet: createWallet,
+    // 纯函数，界面直接调用
+    parseAmount: parseAmount,
+    formatMoney: formatMoney,
+    esc: esc,
+    toCentsOrNull: toCentsOrNull,
+    todayISO: todayISO,
+    isISODate: isISODate,
+    monthKey: monthKey,
+    currentMonthKey: currentMonthKey,
+    shiftMonth: shiftMonth,
+    shiftDay: shiftDay,
+    daysInMonth: daysInMonth,
+    monthLabel: monthLabel,
+    dateLabel: dateLabel,
+    relativeDay: relativeDay,
+    findCategory: findCategory,
+    categoriesOf: categoriesOf,
+    recordsOfMonth: recordsOfMonth,
+    monthRecords: monthRecords,
+    monthlyTotals: monthlyTotals,
+    effectiveBudget: effectiveBudget,
+    summary: summary,
+    categoryTotals: categoryTotals,
+    dailyTotals: dailyTotals,
+    uid: uid
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+/* 我的钱包 — 图表
+ *
+ * 手写 SVG，不依赖任何外部库、不用联网（Chart.js 之类要从网上下载，断网就白屏）。
+ * 两个图：
+ *   renderDonut —— 支出分类占比（环形图 + 图例）
+ *   renderBars  —— 每日支出（柱状图）
+ */
+(function (root) {
+  'use strict';
+
+  var W = root.WalletStore;
+
+  /** 环形图配色，按顺序取，超过就循环 */
+  var PALETTE = [
+    '#3d7eff', '#ff8f3d', '#22c55e', '#a855f7',
+    '#ef4444', '#14b8a6', '#eab308', '#ec4899',
+    '#6366f1', '#84cc16'
+  ];
+
+  function money(cents) { return '¥' + W.formatMoney(cents); }
+
+  function empty(text) {
+    return '<p class="empty">' + W.esc(text) + '</p>';
+  }
+
+  /**
+   * 环形图。
+   * @param {HTMLElement} el 容器
+   * @param {Array<{label:string,value:number,icon?:string}>} items 已按金额从大到小排好
+   * @param {string} centerTop 圆心上方文案
+   * @param {string} centerMain 圆心主数字
+   */
+  function renderDonut(el, items, centerTop, centerMain) {
+    if (!el) return;
+    var data = (items || []).filter(function (d) { return d.value > 0; });
+    if (!data.length) {
+      el.innerHTML = empty('这个月还没有支出，记一笔就能看到占比了');
+      return;
+    }
+
+    var total = data.reduce(function (a, b) { return a + b.value; }, 0);
+    var SIZE = 160, R = 58, SW = 22, CX = 80, CY = 80;
+    var C = 2 * Math.PI * R;
+
+    var svg = '<svg class="donut" viewBox="0 0 ' + SIZE + ' ' + SIZE + '" role="img" aria-label="支出分类占比">';
+    svg += '<circle cx="' + CX + '" cy="' + CY + '" r="' + R + '" fill="none" stroke="var(--line)" stroke-width="' + SW + '"/>';
+
+    var offset = 0;
+    data.forEach(function (d, i) {
+      var len = C * (d.value / total);
+      var gap = data.length > 1 ? Math.min(1.5, len * 0.12) : 0; // 段与段之间留一点缝，更好看
+      var draw = Math.max(len - gap, 0.5);
+      svg += '<circle cx="' + CX + '" cy="' + CY + '" r="' + R + '" fill="none" ' +
+        'stroke="' + PALETTE[i % PALETTE.length] + '" stroke-width="' + SW + '" ' +
+        'stroke-dasharray="' + draw.toFixed(2) + ' ' + (C - draw).toFixed(2) + '" ' +
+        'stroke-dashoffset="' + (-offset).toFixed(2) + '" ' +
+        'transform="rotate(-90 ' + CX + ' ' + CY + ')"><title>' +
+        W.esc(d.label) + ' ' + money(d.value) + '</title></circle>';
+      offset += len;
+    });
+
+    svg += '<text class="donut-top" x="' + CX + '" y="' + (CY - 6) + '" text-anchor="middle">' + W.esc(centerTop || '') + '</text>';
+    svg += '<text class="donut-main" x="' + CX + '" y="' + (CY + 16) + '" text-anchor="middle">' + W.esc(centerMain || '') + '</text>';
+    svg += '</svg>';
+
+    var legend = '<ul class="legend">' + data.map(function (d, i) {
+      var pct = Math.round(d.value / total * 100);
+      return '<li>' +
+        '<span class="dot" style="background:' + PALETTE[i % PALETTE.length] + '"></span>' +
+        '<span class="lg-name">' + (d.icon ? W.esc(d.icon) + ' ' : '') + W.esc(d.label) + '</span>' +
+        '<span class="lg-pct">' + pct + '%</span>' +
+        '<span class="lg-amt">' + money(d.value) + '</span>' +
+        '</li>';
+    }).join('') + '</ul>';
+
+    el.innerHTML = '<div class="donut-flex">' + svg + legend + '</div>';
+  }
+
+  /**
+   * 每日柱状图。
+   * @param {HTMLElement} el 容器
+   * @param {Array<{day:number,date:string,spent:number}>} days
+   * @param {string} todayISO 今天，用来高亮当天的柱子
+   */
+  function renderBars(el, days, todayISO) {
+    if (!el) return;
+    var rows = days || [];
+    var max = rows.reduce(function (m, d) { return Math.max(m, d.spent); }, 0);
+    if (!max) {
+      el.innerHTML = empty('这个月还没有支出');
+      return;
+    }
+
+    var VW = 340, VH = 150, PAD_L = 4, PAD_B = 18, PAD_T = 22;
+    var plotH = VH - PAD_B - PAD_T;
+    var slot = (VW - PAD_L * 2) / rows.length;
+    var barW = Math.max(3, Math.min(14, slot * 0.62));
+
+    var svg = '<svg class="bars" viewBox="0 0 ' + VW + ' ' + VH + '" role="img" aria-label="每日支出">';
+
+    // 顶部一条淡参考线 + 最大值标注
+    svg += '<line x1="0" y1="' + PAD_T + '" x2="' + VW + '" y2="' + PAD_T + '" stroke="var(--line)" stroke-dasharray="3 3"/>';
+    svg += '<text class="bar-max" x="' + VW + '" y="' + (PAD_T - 6) + '" text-anchor="end">最高 ' + money(max) + '</text>';
+
+    rows.forEach(function (d, i) {
+      var x = PAD_L + slot * i + (slot - barW) / 2;
+      var h = max ? Math.round(plotH * (d.spent / max)) : 0;
+      var isToday = d.date === todayISO;
+      var y = PAD_T + plotH - h;
+      if (h > 0) {
+        svg += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barW.toFixed(1) + '" ' +
+          'height="' + h + '" rx="' + Math.min(3, barW / 2).toFixed(1) + '" ' +
+          'class="bar' + (isToday ? ' bar-today' : '') + '"><title>' +
+          d.day + ' 日：' + money(d.spent) + '</title></rect>';
+      } else {
+        // 没花钱的那天留一个极浅的小点，能看出那天是空白的
+        svg += '<rect x="' + x.toFixed(1) + '" y="' + (PAD_T + plotH - 2) + '" width="' + barW.toFixed(1) +
+          '" height="2" rx="1" class="bar-empty"/>';
+      }
+      // 每 5 天标一个数字，避免太挤
+      if (d.day === 1 || d.day % 5 === 0) {
+        svg += '<text class="bar-tick" x="' + (x + barW / 2).toFixed(1) + '" y="' + (VH - 5) + '" text-anchor="middle">' + d.day + '</text>';
+      }
+    });
+
+    svg += '</svg>';
+    el.innerHTML = svg;
+  }
+
+  root.WalletCharts = { renderDonut: renderDonut, renderBars: renderBars, PALETTE: PALETTE };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+/* 我的钱包 — 界面逻辑
+ *
+ * 分工：store.js 算账，charts.js 画图，这里只管"显示什么、点了会怎样"。
+ * 所有会改数据的操作都通过 wallet.xxx()，改完自动存进 localStorage。
+ */
+(function () {
+  'use strict';
+
+  var W = window.WalletStore;
+  var C = window.WalletCharts;
+
+  var wallet = W.createWallet();
+  function st() { return wallet.state; }   // 每次都重新取，清空数据后也能拿到新对象
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---- DOM 引用（对不上就早报错，免得一堆 undefined 报错找不到原因）
+  var el = {
+    storageWarn: $('storageWarn'), storageWarnTip: $('storageWarnTip'),
+    btnSettings: $('btnSettings'),
+    prevMonth: $('prevMonth'), nextMonth: $('nextMonth'), monthLabel: $('monthLabel'),
+    heroAmount: document.querySelector('.hero-amount'),
+    heroCur: document.querySelector('.hero-amount .cur'),
+    heroTitle: $('heroTitle'), heroRemaining: $('heroRemaining'), heroSub: $('heroSub'),
+    heroProgress: $('heroProgress'), heroHint: $('heroHint'), btnSetBudget: $('btnSetBudget'),
+    overAlert: $('overAlert'), overAmount: $('overAmount'),
+    statSpent: $('statSpent'), statIncome: $('statIncome'), statNet: $('statNet'),
+    btnAddExpense: $('btnAddExpense'), btnAddIncome: $('btnAddIncome'),
+    chartMonth: $('chartMonth'), donut: $('donut'), bars: $('bars'),
+    recordCount: $('recordCount'), recordList: $('recordList'),
+    sheet: $('sheet'), sheetClose: $('sheetClose'),
+    tabExpense: $('tabExpense'), tabIncome: $('tabIncome'),
+    amountInput: $('amountInput'), preview: $('preview'), catGrid: $('catGrid'),
+    dateInput: $('dateInput'), methodLabel: $('methodLabel'), methodSelect: $('methodSelect'),
+    noteInput: $('noteInput'), sheetError: $('sheetError'), saveRecord: $('saveRecord'),
+    settings: $('settings'), settingsClose: $('settingsClose'),
+    budgetLabel: $('budgetLabel'), budgetInput: $('budgetInput'),
+    budgetHint: $('budgetHint'), budgetError: $('budgetError'),
+    saveBudget: $('saveBudget'), clearBudget: $('clearBudget'),
+    catManage: $('catManage'), newCatIcon: $('newCatIcon'), newCatName: $('newCatName'),
+    newCatType: $('newCatType'), addCat: $('addCat'), catError: $('catError'),
+    clearAll: $('clearAll'), toast: $('toast')
+  };
+
+  // ---- 界面状态
+  var viewMonth = W.currentMonthKey();
+  var sheetType = 'expense';
+  var sheetCat = null;
+  var toastTimer = null;
+
+  // ------------------------------------------------------------ 格式化
+
+  function money(cents) { return '¥' + W.formatMoney(cents); }
+  function signedMoney(cents) { return (cents < 0 ? '-¥' : '¥') + W.formatMoney(Math.abs(cents)); }
+  function setError(node, msg) {
+    if (!node) return;
+    if (!msg) { node.hidden = true; node.textContent = ''; return; }
+    node.hidden = false;
+    node.textContent = msg;
+  }
+  function toast(msg) {
+    el.toast.textContent = msg;
+    el.toast.hidden = false;
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.toast.hidden = true; }, 3600);
+  }
+
+  // -------------------------------------------------------------- 渲染
+
+  function renderAll() {
+    renderMonthBar();
+    renderHero();
+    renderStats();
+    renderCharts();
+    renderList();
+  }
+
+  function renderMonthBar() {
+    var isCur = viewMonth === W.currentMonthKey();
+    el.monthLabel.textContent = W.monthLabel(viewMonth) + (isCur ? ' · 本月' : '');
+    el.monthLabel.title = isCur ? '已经是本月' : '点一下回到本月';
+    el.nextMonth.disabled = viewMonth >= W.currentMonthKey();
+  }
+
+  function renderHero() {
+    var s = W.summary(st(), viewMonth);
+    var isCur = viewMonth === W.currentMonthKey();
+    var title = isCur ? '本月' : W.monthLabel(viewMonth);
+
+    el.overAlert.hidden = !s.over;
+    if (s.over) el.overAmount.textContent = money(s.spent - s.budget);
+
+    if (!s.hasBudget) {
+      el.heroTitle.textContent = title + '已花';
+      el.heroCur.textContent = '¥';
+      el.heroRemaining.textContent = W.formatMoney(s.spent);
+      el.heroAmount.className = 'hero-amount is-plain';
+      el.heroSub.textContent = '还没设预算 · 收入 ' + money(s.income) + ' − 支出 ' + money(s.spent);
+      el.heroProgress.style.width = '0%';
+      el.heroProgress.className = 'progress-fill';
+      el.heroHint.textContent = '设了预算才能看到"还剩多少"';
+      el.btnSetBudget.textContent = '设置预算';
+      return;
+    }
+
+    el.heroTitle.textContent = title + '还剩';
+    var rem = s.remaining;
+    el.heroCur.textContent = rem < 0 ? '-¥' : '¥';
+    el.heroRemaining.textContent = W.formatMoney(Math.abs(rem));
+    el.heroAmount.className = 'hero-amount' + (s.over ? ' is-over' : s.percent >= 0.8 ? ' is-warn' : '');
+    el.heroSub.textContent = '预算 ' + money(s.budget) + ' · 已花 ' + money(s.spent);
+    el.heroProgress.style.width = Math.min(100, s.percent * 100).toFixed(1) + '%';
+    el.heroProgress.className = 'progress-fill' + (s.over ? ' is-over' : s.percent >= 0.8 ? ' is-warn' : '');
+    el.heroHint.textContent = Math.round(s.percent * 100) + '% 已用' +
+      (s.budgetInherited ? ' · 沿用 ' + W.monthLabel(s.budgetSourceKey) + ' 的预算' : '');
+    el.btnSetBudget.textContent = '改预算';
+  }
+
+  function renderStats() {
+    var s = W.summary(st(), viewMonth);
+    el.statSpent.textContent = money(s.spent);
+    el.statIncome.textContent = money(s.income);
+    el.statNet.textContent = signedMoney(s.net);
+    el.statNet.className = 'stat-value' + (s.net > 0 ? ' in' : s.net < 0 ? ' out' : '');
+  }
+
+  function renderCharts() {
+    el.chartMonth.textContent = W.monthLabel(viewMonth);
+    var ct = W.categoryTotals(st(), viewMonth, 'expense');
+    C.renderDonut(el.donut, ct.list.map(function (d) {
+      return { label: d.name, icon: d.icon, value: d.value };
+    }), '总支出', W.formatMoney(ct.total));
+    C.renderBars(el.bars, W.dailyTotals(st(), viewMonth), W.todayISO());
+  }
+
+  function renderList() {
+    var recs = W.monthRecords(st(), viewMonth);
+    el.recordCount.textContent = recs.length ? recs.length + ' 笔' : '';
+
+    if (!recs.length) {
+      el.recordList.innerHTML = '<p class="empty">这个月还没有记录，点上面的按钮记第一笔吧</p>';
+      return;
+    }
+
+    var groups = [], map = {};
+    recs.forEach(function (r) {
+      if (!map[r.date]) {
+        map[r.date] = { date: r.date, list: [], spent: 0, income: 0 };
+        groups.push(map[r.date]);
+      }
+      map[r.date].list.push(r);
+      if (r.type === 'income') map[r.date].income += r.amount;
+      else map[r.date].spent += r.amount;
+    });
+
+    var today = W.todayISO();
+    el.recordList.innerHTML = groups.map(function (g) {
+      var rel = W.relativeDay(g.date, today);
+      var parts = [];
+      if (g.spent) parts.push('支出 ' + money(g.spent));
+      if (g.income) parts.push('收入 ' + money(g.income));
+
+      var head = '<div class="day-head">' +
+        '<span>' + W.esc(W.dateLabel(g.date)) + (rel ? ' · ' + rel : '') + '</span>' +
+        '<span class="day-total">' + parts.join(' · ') + '</span>' +
+        '</div>';
+
+      var rows = g.list.map(function (r) {
+        var c = W.findCategory(st(), r.categoryId);
+        var amt = (r.type === 'income' ? '+' : '−') + money(r.amount);
+        return '<div class="record">' +
+          '<span class="rec-icon">' + W.esc(c ? c.icon : '❓') + '</span>' +
+          '<div class="rec-main">' +
+            '<div class="rec-name">' + W.esc(c ? c.name : '已删除分类') +
+              (r.method ? '<span class="tag">' + W.esc(r.method) + '</span>' : '') +
+            '</div>' +
+            (r.note ? '<div class="rec-note">' + W.esc(r.note) + '</div>' : '') +
+          '</div>' +
+          '<span class="rec-amt ' + (r.type === 'income' ? 'in' : 'out') + '">' + amt + '</span>' +
+          '<button class="rec-del" data-del="' + W.esc(r.id) + '" title="删除这一笔" aria-label="删除这一笔">✕</button>' +
+          '</div>';
+      }).join('');
+
+      return '<div class="day-group">' + head + rows + '</div>';
+    }).join('');
+  }
+
+  // ------------------------------------------------------- 记一笔弹层
+
+  function renderMethods() {
+    var cur = st().lastMethod;
+    el.methodSelect.innerHTML = W.METHODS.map(function (m) {
+      return '<option value="' + W.esc(m) + '"' + (m === cur ? ' selected' : '') + '>' + W.esc(m) + '</option>';
+    }).join('');
+  }
+
+  function renderCatGrid() {
+    var cats = W.categoriesOf(st(), sheetType);
+    if (!cats.length) {
+      el.catGrid.innerHTML = '<p class="empty">没有可用分类，去设置里加一个</p>';
+      return;
+    }
+    el.catGrid.innerHTML = cats.map(function (c) {
+      return '<button type="button" class="cat-btn' + (c.id === sheetCat ? ' is-active' : '') + '" ' +
+        'data-cat="' + W.esc(c.id) + '">' +
+        '<span class="cat-icon">' + W.esc(c.icon) + '</span>' +
+        '<span>' + W.esc(c.name) + '</span></button>';
+    }).join('');
+  }
+
+  /** 实时预览：让"减法/加法同时进行"在按下保存之前就能看见 */
+  function renderPreview() {
+    var cents = W.parseAmount(el.amountInput.value);
+    var date = W.isISODate(el.dateInput.value) ? el.dateInput.value : W.todayISO();
+    var key = W.monthKey(date);
+    var s = W.summary(st(), key);
+    var name = W.monthLabel(key);
+
+    el.preview.classList.remove('is-over');
+
+    if (cents === null) {
+      el.preview.innerHTML = s.hasBudget
+        ? name + '预算 ' + money(s.budget) + '，已花 ' + money(s.spent) + '，还剩 <b>' + signedMoney(s.remaining) + '</b>。'
+        : name + '还没设预算，只统计支出和收入。';
+      return;
+    }
+
+    if (sheetType === 'expense') {
+      if (!s.hasBudget) {
+        el.preview.innerHTML = '记完后 ' + name + '一共花了 <b>' + money(s.spent + cents) + '</b>（这个月没设预算）。';
+        return;
+      }
+      var rem = s.remaining - cents;
+      if (rem < 0) el.preview.classList.add('is-over');
+      el.preview.innerHTML = '记完后 ' + name + '还剩 <b>' + signedMoney(rem) + '</b>（预算 ' + money(s.budget) + '）' +
+        (rem < 0 ? '，会超出预算' : '');
+    } else {
+      el.preview.innerHTML = '记完后 ' + name + '结余 <b>' + signedMoney(s.net + cents) + '</b>' +
+        '（收入 ' + money(s.income + cents) + ' − 支出 ' + money(s.spent) + '）。收入不占用预算额度。';
+    }
+  }
+
+  function openSheet(type) {
+    sheetType = type === 'income' ? 'income' : 'expense';
+    el.tabExpense.classList.toggle('is-active', sheetType === 'expense');
+    el.tabIncome.classList.toggle('is-active', sheetType === 'income');
+    el.amountInput.value = '';
+    el.noteInput.value = '';
+    el.dateInput.value = W.todayISO();
+    el.methodLabel.textContent = sheetType === 'income' ? '到账方式' : '支付方式';
+    setError(el.sheetError, '');
+    renderMethods();
+
+    var cats = W.categoriesOf(st(), sheetType);
+    var last = st().lastCategory[sheetType];
+    sheetCat = cats.some(function (c) { return c.id === last; }) ? last : (cats[0] ? cats[0].id : null);
+
+    renderCatGrid();
+    renderPreview();
+    el.sheet.hidden = false;
+    setTimeout(function () { if (el.amountInput.focus) el.amountInput.focus(); }, 30);
+  }
+
+  function closeSheet() { el.sheet.hidden = true; }
+
+  function saveCurrent() {
+    var cents = W.parseAmount(el.amountInput.value);
+    if (cents === null) {
+      setError(el.sheetError, '金额没填对。可以写 15、15.5、15.50，要大于 0。');
+      if (el.amountInput.focus) el.amountInput.focus();
+      return;
+    }
+    if (!sheetCat) { setError(el.sheetError, '请选一个分类。'); return; }
+    if (!W.isISODate(el.dateInput.value)) { setError(el.sheetError, '日期没填对。'); return; }
+
+    var cat = W.findCategory(st(), sheetCat);
+    var rec;
+    try {
+      rec = wallet.addRecord({
+        type: sheetType,
+        amount: cents,
+        categoryId: sheetCat,
+        date: el.dateInput.value,
+        note: el.noteInput.value,
+        method: el.methodSelect.value
+      });
+    } catch (err) {
+      setError(el.sheetError, err.message);
+      return;
+    }
+
+    closeSheet();
+    viewMonth = W.monthKey(rec.date);
+    renderAll();
+
+    var s = W.summary(st(), viewMonth);
+    var name = W.monthLabel(viewMonth);
+    if (rec.type === 'expense') {
+      if (s.hasBudget) {
+        toast('已记 ' + cat.name + ' ' + money(rec.amount) + '　→　' + name + '还剩 ' + signedMoney(s.remaining) +
+          (s.over ? '（已超支）' : ''));
+      } else {
+        toast('已记 ' + cat.name + ' ' + money(rec.amount) + '　→　' + name + '共花 ' + money(s.spent));
+      }
+    } else {
+      toast('已记收入 ' + money(rec.amount) + '　→　' + name + '结余 ' + signedMoney(s.net) + '，预算不受影响');
+    }
+  }
+
+  // -------------------------------------------------------------- 设置
+
+  function renderSettings() {
+    var s = st();
+    var own = Object.prototype.hasOwnProperty.call(s.budgets, viewMonth);
+    var eff = W.effectiveBudget(s, viewMonth);
+
+    el.budgetLabel.textContent = W.monthLabel(viewMonth) + '预算（元）';
+    el.budgetInput.value = (own && s.budgets[viewMonth] != null)
+      ? W.formatMoney(s.budgets[viewMonth]).replace(/,/g, '')
+      : '';
+
+    var hint;
+    if (own && s.budgets[viewMonth] === null) hint = '这个月你选择不设预算，支出和收入照常统计。';
+    else if (eff.amount !== null && eff.inherited) hint = '本月没单独设，正在沿用 ' + W.monthLabel(eff.sourceKey) + ' 的 ' + money(eff.amount) + '。填个新数字保存，就会单独给本月设上。';
+    else if (eff.amount !== null) hint = '本月预算 ' + money(eff.amount) + '。每记一笔支出，它就会自动减少同样多。';
+    else hint = '还没设过预算。先设一个，记账的时候就能看到"还剩多少"。';
+    el.budgetHint.textContent = hint;
+
+    el.catManage.innerHTML = s.categories.map(function (c) {
+      var n = s.records.filter(function (r) { return r.categoryId === c.id; }).length;
+      return '<div class="cat-row">' +
+        '<span>' + W.esc(c.icon) + '</span>' +
+        '<span class="cat-row-name">' + W.esc(c.name) + '</span>' +
+        '<span class="cat-row-type">' + (c.type === 'income' ? '收入' : '支出') + (n ? ' · ' + n + ' 笔' : '') + '</span>' +
+        '<button class="cat-del" data-cat-del="' + W.esc(c.id) + '">删除</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function openSettings() {
+    setError(el.catError, '');
+    setError(el.budgetError, '');
+    el.newCatName.value = '';
+    el.newCatIcon.value = '';
+    renderSettings();
+    el.settings.hidden = false;
+    setTimeout(function () { if (el.budgetInput.focus) el.budgetInput.focus(); }, 30);
+  }
+
+  function closeSettings() { el.settings.hidden = true; }
+
+  // -------------------------------------------------------------- 事件
+
+  function bind() {
+    // 月份
+    el.prevMonth.addEventListener('click', function () {
+      viewMonth = W.shiftMonth(viewMonth, -1);
+      renderAll();
+    });
+    el.nextMonth.addEventListener('click', function () {
+      if (viewMonth >= W.currentMonthKey()) return;
+      viewMonth = W.shiftMonth(viewMonth, 1);
+      renderAll();
+    });
+    el.monthLabel.addEventListener('click', function () {
+      viewMonth = W.currentMonthKey();
+      renderAll();
+    });
+
+    // 打开记账弹层
+    el.btnAddExpense.addEventListener('click', function () { openSheet('expense'); });
+    el.btnAddIncome.addEventListener('click', function () { openSheet('income'); });
+    el.btnSetBudget.addEventListener('click', openSettings);
+    el.btnSettings.addEventListener('click', openSettings);
+
+    // 弹层里的 tab / 关闭 / 遮罩
+    el.tabExpense.addEventListener('click', function () { switchSheetType('expense'); });
+    el.tabIncome.addEventListener('click', function () { switchSheetType('income'); });
+    el.sheetClose.addEventListener('click', closeSheet);
+    el.settingsClose.addEventListener('click', closeSettings);
+    el.sheet.addEventListener('click', function (e) { if (e.target === el.sheet) closeSheet(); });
+    el.settings.addEventListener('click', function (e) { if (e.target === el.settings) closeSettings(); });
+
+    // 分类格子
+    el.catGrid.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('[data-cat]') : null;
+      if (!btn) return;
+      sheetCat = btn.getAttribute('data-cat');
+      renderCatGrid();
+      renderPreview();
+    });
+
+    // 金额/日期变化 → 实时预览
+    el.amountInput.addEventListener('input', renderPreview);
+    el.amountInput.addEventListener('change', renderPreview);
+    el.dateInput.addEventListener('change', renderPreview);
+    el.amountInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); saveCurrent(); }
+    });
+    el.noteInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); saveCurrent(); }
+    });
+    el.saveRecord.addEventListener('click', saveCurrent);
+
+    // 删除一笔
+    el.recordList.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('[data-del]') : null;
+      if (!btn) return;
+      var id = btn.getAttribute('data-del');
+      var rec = null;
+      st().records.forEach(function (r) { if (r.id === id) rec = r; });
+      if (!rec) return;
+      var c = W.findCategory(st(), rec.categoryId);
+      var ok = window.confirm('删除这一笔？\n\n' + (c ? c.name : '这笔') + '　' +
+        (rec.type === 'income' ? '+' : '−') + money(rec.amount) + '　' + rec.date +
+        '\n\n删掉后预算和结余都会跟着恢复。');
+      if (!ok) return;
+      wallet.deleteRecord(id);
+      renderAll();
+      if (!el.settings.hidden) renderSettings();
+      toast('已删掉这一笔，数字都恢复了');
+    });
+
+    // 设置：预算
+    el.saveBudget.addEventListener('click', function () {
+      var cents = W.parseAmount(el.budgetInput.value);
+      if (cents === null) { setError(el.budgetError, '预算要填一个大于 0 的数字，比如 1500。'); return; }
+      wallet.setBudget(viewMonth, cents);
+      setError(el.budgetError, '');
+      renderSettings();
+      renderAll();
+      toast(W.monthLabel(viewMonth) + '预算设为 ' + money(cents) + '，每记一笔支出会自动扣掉');
+    });
+
+    el.clearBudget.addEventListener('click', function () {
+      wallet.setBudget(viewMonth, null);
+      setError(el.budgetError, '');
+      renderSettings();
+      renderAll();
+      toast(W.monthLabel(viewMonth) + '不再显示预算，支出收入照常统计');
+    });
+
+    // 设置：分类
+    el.addCat.addEventListener('click', function () {
+      try {
+        var cat = wallet.addCategory({
+          name: el.newCatName.value,
+          icon: el.newCatIcon.value,
+          type: el.newCatType.value
+        });
+        el.newCatName.value = '';
+        el.newCatIcon.value = '';
+        setError(el.catError, '');
+        renderSettings();
+        toast('已加上分类「' + cat.name + '」');
+      } catch (err) {
+        setError(el.catError, err.message);
+      }
+    });
+
+    el.catManage.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('[data-cat-del]') : null;
+      if (!btn) return;
+      var id = btn.getAttribute('data-cat-del');
+      var c = W.findCategory(st(), id);
+      if (!c) return;
+      if (!window.confirm('删除分类「' + c.name + '」？')) return;
+      try {
+        wallet.deleteCategory(id);
+        setError(el.catError, '');
+        renderSettings();
+        toast('已删除分类「' + c.name + '」');
+      } catch (err) {
+        setError(el.catError, err.message);
+      }
+    });
+
+    // 设置：清空
+    el.clearAll.addEventListener('click', function () {
+      if (!window.confirm('确定清空所有数据？\n\n所有账目、预算、自己加的分类都会没掉，而且没法恢复。')) return;
+      if (!window.confirm('真的确定吗？这是最后一步确认。')) return;
+      wallet.clearAll();
+      viewMonth = W.currentMonthKey();
+      setError(el.catError, '');
+      setError(el.budgetError, '');
+      renderSettings();
+      renderAll();
+      toast('数据已清空，可以从头开始记了');
+    });
+
+    // Esc 关闭弹层
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (!el.sheet.hidden) closeSheet();
+      if (!el.settings.hidden) closeSettings();
+    });
+  }
+
+  function switchSheetType(type) {
+    if (type === sheetType) return;
+    var keepAmount = el.amountInput.value;
+    sheetType = type;
+    el.tabExpense.classList.toggle('is-active', type === 'expense');
+    el.tabIncome.classList.toggle('is-active', type === 'income');
+    el.methodLabel.textContent = type === 'income' ? '到账方式' : '支付方式';
+    var cats = W.categoriesOf(st(), sheetType);
+    var last = st().lastCategory[sheetType];
+    sheetCat = cats.some(function (c) { return c.id === last; }) ? last : (cats[0] ? cats[0].id : null);
+    el.amountInput.value = keepAmount;
+    renderCatGrid();
+    renderPreview();
+  }
+
+  // -------------------------------------------------------------- 启动
+
+  function init() {
+    renderAll();
+    renderMethods();
+    bind();
+    checkStorage();
+
+    // 第一次打开：还没设过预算也没记过账，直接把设置弹出来让用户先设预算
+    var s = st();
+    if (Object.keys(s.budgets).length === 0 && s.records.length === 0) {
+      openSettings();
+      toast('先设一个本月预算吧，以后每记一笔支出会自动从里面扣');
+    }
+  }
+
+  /**
+   * 数据存不下来时必须大声说出来。
+   * 静默降级是最坏的选择：用户会以为账存好了，关掉页面才发现全没了。
+   */
+  function checkStorage() {
+    if (wallet.persistent) return;
+    el.storageWarn.hidden = false;
+    el.storageWarnTip.textContent = W.isLocalFile()
+      ? '在 iPhone / iPad 上直接用"文件"打开本地 html 就会这样（Safari 不允许这种页面存数据）。请照 README 里「iPhone 上怎么用」那一节，改用网址打开。'
+      : '可能是无痕模式，或者浏览器设置里禁止了网站保存数据。换成普通窗口再试。';
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+
+  // 方便在浏览器控制台里调试：WalletApp.state 能看数据
+  window.WalletApp = {
+    wallet: wallet,
+    render: renderAll,
+    setViewMonth: function (k) { viewMonth = k; renderAll(); },
+    getViewMonth: function () { return viewMonth; }
+  };
+})();
+</script>
+</body>
+</html>
