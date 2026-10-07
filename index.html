@@ -232,11 +232,12 @@ body { display: flex; justify-content: center; }
 }
 .alert b { font-variant-numeric: tabular-nums; }
 
-/* -------------------------------------------------------- 三个小数字 */
+/* -------------------------------------------------------- 四个小数字 */
 
-.stats3 {
+/* 2x2 而不是一行四个：390px 的手机上一行四个会把金额挤到看不清 */
+.stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   margin-bottom: 12px;
 }
@@ -247,17 +248,85 @@ body { display: flex; justify-content: center; }
   background: var(--card);
   border-radius: 14px;
   box-shadow: var(--shadow);
+  min-width: 0;
 }
-.stat-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.stat-label {
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .stat-value {
   margin-top: 4px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .stat-value.out { color: var(--bad); }
 .stat-value.in { color: var(--good); }
+
+/* 余额这张卡是"主角之一"，给它一点底色区分出来 */
+.stat-balance { background: var(--tap); box-shadow: none; border: 1px solid var(--brand); }
+.stat-balance .stat-label { color: var(--brand); }
+.stat-value.bad { color: var(--bad); }
+
+/* ------------------------------------------------------ 各账户余额 */
+
+.account-list { margin: 2px 0 6px; }
+
+.account-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 2px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13.5px;
+}
+.account-row:last-child { border-bottom: none; }
+.account-row .acc-name { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.account-row .acc-count { flex: 0 0 auto; font-size: 11px; color: var(--muted); }
+.account-row .acc-amt { flex: 0 0 auto; font-weight: 700; font-variant-numeric: tabular-nums; }
+.account-row .acc-amt.bad { color: var(--bad); }
+.account-row.is-total {
+  margin-top: 2px;
+  padding-top: 9px;
+  border-top: 2px solid var(--line);
+  border-bottom: none;
+  font-weight: 700;
+}
+.account-row.is-total .acc-amt { font-size: 15px; }
+
+/* ------------------------------------------- 记账弹层里的账户联动 */
+
+.method-balance {
+  min-height: 18px;
+  margin: 8px 2px 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.method-balance b { font-variant-numeric: tabular-nums; color: var(--text); }
+.method-balance .arrow { margin: 0 4px; }
+.method-balance .after-bad { color: var(--bad); }
+
+/* --------------------------------------------- 设置里的期初余额 */
+
+.opening-list { margin-bottom: 8px; }
+.opening-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.opening-row .opening-name {
+  flex: 0 0 76px;
+  font-size: 13.5px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.opening-row .text-input { flex: 1 1 auto; }
 
 /* -------------------------------------------------------------- 按钮 */
 
@@ -371,7 +440,10 @@ body { display: flex; justify-content: center; }
   gap: 10px;
   padding: 9px 6px;
   border-bottom: 1px solid var(--line);
+  cursor: pointer;            /* 整行可点 = 改这一笔 */
+  border-radius: 8px;
 }
+.record:hover { background: var(--tap); }
 .record:last-child { border-bottom: none; }
 
 .rec-icon {
@@ -534,6 +606,7 @@ body { display: flex; justify-content: center; }
 }
 .preview b { color: var(--text); font-variant-numeric: tabular-nums; }
 .preview.is-over b { color: var(--bad); }
+.preview-bad { color: var(--bad); }
 
 .field-label {
   margin: 16px 0 8px;
@@ -642,6 +715,47 @@ body { display: flex; justify-content: center; }
 
 #saveRecord { margin-top: 18px; }
 
+/* ---------------------------------------------------- 备份与恢复弹层 */
+
+.backup-text {
+  width: 100%;
+  padding: 9px 11px;
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  resize: vertical;
+  word-break: break-all;
+  outline: none;
+}
+.backup-text:focus { border-color: var(--brand); }
+
+.file-input {
+  width: 100%;
+  padding: 8px 0;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.file-input::file-selector-button {
+  margin-right: 8px;
+  padding: 7px 12px;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  cursor: pointer;
+}
+.file-input::file-selector-button:hover { border-color: var(--brand); color: var(--brand); }
+
+/* 合并和替换按钮平分一行 */
+#doMerge, #doReplace { flex: 1 1 0; }
+
 /* -------------------------------------------------------------- 吐司 */
 
 .toast {
@@ -703,8 +817,8 @@ body { display: flex; justify-content: center; }
     </div>
   </section>
 
-  <!-- 三个小数字：加法（收入）和净结余 -->
-  <section class="stats3">
+  <!-- 四个小数字：支出/收入是本月，结余是本月净额，余额是跨月累计 -->
+  <section class="stats-grid">
     <div class="stat">
       <div class="stat-label">本月支出 −</div>
       <div class="stat-value out" id="statSpent">¥0.00</div>
@@ -714,9 +828,25 @@ body { display: flex; justify-content: center; }
       <div class="stat-value in" id="statIncome">¥0.00</div>
     </div>
     <div class="stat">
-      <div class="stat-label">结余（收−支）</div>
+      <div class="stat-label">本月结余（收−支）</div>
       <div class="stat-value" id="statNet">¥0.00</div>
     </div>
+    <div class="stat stat-balance">
+      <div class="stat-label" id="statBalanceLabel">当前余额</div>
+      <div class="stat-value" id="statBalance">¥0.00</div>
+    </div>
+  </section>
+
+  <!-- 各账户余额：记账时选哪个账户，这里就跟着变 -->
+  <section class="card">
+    <div class="card-head">
+      <h2>各账户余额</h2>
+      <span class="muted" id="accountHint"></span>
+    </div>
+    <div id="accountList" class="account-list"></div>
+    <p class="hint">
+      余额 = 期初余额 + 收入 − 支出，跨月累计。账户就是记账时选的「支付方式」。
+    </p>
   </section>
 
   <!-- 记一笔 -->
@@ -744,7 +874,10 @@ body { display: flex; justify-content: center; }
 
   <!-- 明细 -->
   <section class="card">
-    <div class="card-head"><h2>明细</h2><span class="muted" id="recordCount"></span></div>
+    <div class="card-head">
+      <h2>明细</h2>
+      <span class="muted"><span id="recordCount"></span><span id="recordHint"></span></span>
+    </div>
     <div id="recordList" class="record-list"></div>
   </section>
 
@@ -790,6 +923,9 @@ body { display: flex; justify-content: center; }
         </label>
       </div>
 
+      <!-- 和账户联动：选哪个账户，就直接告诉你它记完还剩多少 -->
+      <div id="methodBalance" class="method-balance"></div>
+
       <label class="field">
         <span>备注（可选）</span>
         <input id="noteInput" type="text" maxlength="40" placeholder="比如：和室友吃火锅">
@@ -822,6 +958,16 @@ body { display: flex; justify-content: center; }
       <p class="hint" id="budgetHint"></p>
       <div id="budgetError" class="error" hidden></div>
 
+      <div class="field-label">各账户期初余额（元）</div>
+      <p class="hint">
+        开始记账那一刻，每个账户里本来有多少钱。不填就是 0。
+        可以是负数（比如信用卡欠着钱）。填完之后，余额 = 这些数 + 各自账户的收入 − 支出。
+      </p>
+      <div id="openingList" class="opening-list"></div>
+      <button id="saveOpening" class="btn btn-primary btn-sm">保存期初余额</button>
+      <div id="openingError" class="error" hidden></div>
+      <p class="hint" id="openingHint"></p>
+
       <div class="field-label">分类管理</div>
       <p class="hint">删除分类前，得先处理掉用到它的记录。</p>
       <div id="catManage" class="cat-manage"></div>
@@ -836,11 +982,62 @@ body { display: flex; justify-content: center; }
       </div>
       <div id="catError" class="error" hidden></div>
 
+      <div class="field-label">备份与恢复</div>
+      <p class="hint">数据只存在这台设备的浏览器里。换手机、清缓存、手滑之前，先导出一份存着。</p>
+      <button id="openBackup" class="btn btn-primary btn-big">打开备份 / 恢复</button>
+
       <div class="field-label danger-label">危险操作</div>
       <button id="clearAll" class="btn btn-danger btn-big">清空所有数据</button>
       <p class="hint">
         数据存在浏览器本地（localStorage），不会上传到任何地方，也不花钱。<br>
-        但目前<b>没有导出备份</b>功能：清浏览器数据 = 账目全没。想要导出的话跟我说一声，加一个按钮就行。
+        想换手机、或者怕手滑清掉，用上面的<b>备份 / 恢复</b>导出一份文件收好。
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 备份与恢复：底部弹层 ==================== -->
+<div id="backup" class="mask" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="备份与恢复">
+    <div class="sheet-head">
+      <button id="backupClose" class="icon-btn" aria-label="关闭">✕</button>
+      <h2 class="sheet-title">备份与恢复</h2>
+      <span class="sheet-spacer"></span>
+    </div>
+
+    <div class="sheet-body">
+      <p class="hint">
+        数据只存在这台设备的浏览器里。<b>换手机、清缓存、手滑之前，先导出一份存着。</b>
+      </p>
+
+      <div class="field-label">① 导出备份</div>
+      <div class="inline-row">
+        <button id="doDownload" class="btn btn-primary">下载备份文件</button>
+        <button id="doCopy" class="btn btn-ghost">复制到剪贴板</button>
+      </div>
+      <textarea id="exportText" class="backup-text" rows="4" readonly
+                aria-label="备份内容"></textarea>
+      <p class="hint">
+        下载不了（有些手机浏览器会拦）？点<b>复制</b>，或者直接点上面这个框、全选复制，
+        粘到备忘录或"文件传输助手"里存着，效果一样。
+      </p>
+
+      <div class="field-label">② 恢复 / 合并</div>
+      <input id="importFile" class="file-input" type="file" accept=".json,application/json"
+             aria-label="选择备份文件">
+      <p class="hint">或者把备份内容粘贴到下面：</p>
+      <textarea id="importText" class="backup-text" rows="4" placeholder="粘贴备份内容…"
+                aria-label="粘贴备份内容"></textarea>
+      <div id="importPreview" class="preview"></div>
+      <div class="inline-row">
+        <button id="doMerge" class="btn btn-ghost" disabled>合并进来</button>
+        <button id="doReplace" class="btn btn-danger" disabled>完全替换</button>
+      </div>
+      <div id="backupError" class="error" hidden></div>
+      <p class="hint">
+        <b>合并进来</b>：保留现在的账，只把备份里多出来的账目加进来（同一笔不会重复）——
+        两台手机想凑成一本账就用这个。<br>
+        <b>完全替换</b>：清空这台设备上的所有数据，只用备份里的（会问你两次）。
       </p>
     </div>
   </div>
@@ -917,6 +1114,45 @@ body { display: flex; justify-content: center; }
     var fen = v % 100;
     var s = String(yuan).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + pad2(fen);
     return (neg ? '-' : '') + s;
+  }
+
+  /**
+   * 带符号的金额解析：给"期初余额"用（可以是 0，也可以是负数 —— 欠着钱 / 信用卡账单）。
+   * 记账金额仍然走 parseAmount()，那个必须大于 0。
+   */
+  function parseSignedAmount(input) {
+    var s = String(input == null ? '' : input).trim().replace(/[¥￥,，\s]/g, '');
+    if (!/^-?\d{0,9}(\.\d{0,2})?$/.test(s)) return null;
+    if (!/\d/.test(s)) return null;
+    var n = Number(s);
+    if (!isFinite(n)) return null;
+    return Math.round(n * 100);
+  }
+
+  /** 存进 state 的带符号分值（内部用，脏数据一律当 0） */
+  function toCentsSigned(v) {
+    if (v === null || v === undefined || v === '') return 0;
+    var n = Number(v);
+    if (!isFinite(n)) return 0;
+    return Math.round(n);
+  }
+
+  /** 每个账户的期初余额都从 0 开始 */
+  function openingBalancesZero() {
+    var o = {};
+    METHODS.forEach(function (m) { o[m] = 0; });
+    return o;
+  }
+
+  /**
+   * 一条账属于哪个账户。
+   * 账户就是"支付方式"（支付宝、现金、微信…）—— 记账时选的那个，
+   * 所以记账和账户余额天然是联动的，不用另外维护一套东西。
+   * 万一是老数据、支付方式空着或写了个不认识的，就归到"其他"。
+   */
+  function accountName(method) {
+    var m = String(method == null ? '' : method).trim();
+    return METHODS.indexOf(m) >= 0 ? m : METHODS[METHODS.length - 1]; // 兜底 = 其他
   }
 
   /** 转义用户输入，防止备注/分类名里的 < > 破坏页面 */
@@ -1040,6 +1276,7 @@ body { display: flex; justify-content: center; }
         return { id: c.id, name: c.name, icon: c.icon, type: c.type };
       }),
       records: [],              // 所有账目，不分月份，按 date 过滤
+      openingBalances: openingBalancesZero(), // 各账户期初余额（分）：开始记账时每个账户里已有的钱，可为负
       lastMethod: METHODS[0],
       lastCategory: { expense: 'c-food', income: 'i-living' }
     };
@@ -1049,6 +1286,13 @@ body { display: flex; justify-content: center; }
   function normalize(raw) {
     var s = defaultState();
     if (!raw || typeof raw !== 'object') return s;
+
+    s.openingBalances = openingBalancesZero();
+    if (raw.openingBalances && typeof raw.openingBalances === 'object') {
+      METHODS.forEach(function (m) {
+        s.openingBalances[m] = toCentsSigned(raw.openingBalances[m]);
+      });
+    }
 
     if (raw.budgets && typeof raw.budgets === 'object') {
       Object.keys(raw.budgets).forEach(function (k) {
@@ -1095,7 +1339,8 @@ body { display: flex; justify-content: center; }
           date: r.date,
           note: String(r.note == null ? '' : r.note).slice(0, 60),
           method: String(r.method == null ? '' : r.method).slice(0, 8),
-          createdAt: Number(r.createdAt) || 0
+          createdAt: Number(r.createdAt) || 0,
+          updatedAt: Number(r.updatedAt) || 0
         });
       });
     }
@@ -1154,6 +1399,49 @@ body { display: flex; justify-content: center; }
   }
 
   /**
+   * 各账户截至某个月月底的余额。
+   *   每个账户 = 自己的期初 + 走这个账户的收入 − 走这个账户的支出
+   *   总额     = 所有账户加起来 = 总期初 + 总收入 − 总支出
+   *
+   * 看 9 月就是"9 月底每个账户里各有多少钱"，看本月就是"现在各有多少"。
+   * 日期是 'YYYY-MM-DD' 这种定长字符串，所以 key + '-31' 天然就是"这个月最后一天之后"，
+   * 直接字符串比较就行，不用去算那个月有几天。
+   */
+  function accountBalances(state, key) {
+    var end = key + '-31';
+    var map = {};
+    METHODS.forEach(function (m) {
+      var opening = toCentsSigned((state.openingBalances || {})[m]);
+      map[m] = { name: m, opening: opening, income: 0, spent: 0, amount: opening, count: 0 };
+    });
+
+    state.records.forEach(function (r) {
+      if (r.date > end) return;
+      var a = map[accountName(r.method)];   // accountName 保证一定落在 METHODS 里
+      a.count += 1;
+      if (r.type === 'income') { a.income += r.amount; a.amount += r.amount; }
+      else { a.spent += r.amount; a.amount -= r.amount; }
+    });
+
+    var list = METHODS.map(function (m) { return map[m]; });
+    var total = { name: '合计', opening: 0, income: 0, spent: 0, amount: 0, count: 0 };
+    list.forEach(function (a) {
+      total.opening += a.opening;
+      total.income += a.income;
+      total.spent += a.spent;
+      total.amount += a.amount;
+      total.count += a.count;
+    });
+    return { list: list, total: total };
+  }
+
+  /** 总余额（所有账户加起来），首页那个"余额"用这个 */
+  function balanceUpTo(state, key) {
+    return accountBalances(state, key).total;
+  }
+
+
+  /**
    * 这个月实际生效的预算。
    * 优先用本月自己设的；没设过就往前沿用最近设过的那个月（界面上会标注"沿用 X 月"）。
    * 如果本月被明确设为 null（取消预算），就真的没有预算。
@@ -1194,7 +1482,8 @@ body { display: flex; justify-content: center; }
       remaining: hasBudget ? eff.amount - t.spent : null,
       percent: hasBudget ? t.spent / eff.amount : 0,
       over: hasBudget ? t.spent > eff.amount : false,
-      count: recordsOfMonth(state, key).length
+      count: recordsOfMonth(state, key).length,
+      balance: balanceUpTo(state, key).amount
     };
   }
 
@@ -1235,6 +1524,116 @@ body { display: flex; justify-content: center; }
       else out[i].spent += r.amount;
     });
     return out;
+  }
+
+  /* ------------------------------------------------------------ 备份与恢复 */
+
+  var BACKUP_KIND = 'wallet-backup';
+  var BACKUP_VERSION = 1;
+
+  /**
+   * 生成备份包。data 是深拷贝 —— 之后改数据，已经导出的备份内容不会跟着变。
+   * summary 只是给人看的，方便界面说清"这份备份里有什么"。
+   */
+  function exportPayload(state) {
+    var dates = state.records.map(function (r) { return r.date; }).sort();
+    return {
+      app: '我的钱包',
+      kind: BACKUP_KIND,
+      version: BACKUP_VERSION,
+      exportedAt: new Date().toISOString(),
+      summary: {
+        records: state.records.length,
+        categories: state.categories.length,
+        budgets: Object.keys(state.budgets).length,
+        firstDate: dates.length ? dates[0] : null,
+        lastDate: dates.length ? dates[dates.length - 1] : null
+      },
+      data: JSON.parse(JSON.stringify(state))
+    };
+  }
+
+  /** 从备份包里取出真正的数据；也容忍直接给一个 state 对象（宽容一点，手写的也能救） */
+  function unwrap(payload) {
+    if (payload && typeof payload === 'object' && payload.data && typeof payload.data === 'object') {
+      return payload.data;
+    }
+    return payload;
+  }
+
+  /** 解析备份文本 → { ok:true, data, meta } 或 { ok:false, error } */
+  function parseBackup(text) {
+    if (typeof text !== 'string' || !text.trim()) {
+      return { ok: false, error: '还没有内容 —— 先选一个备份文件，或者把备份内容粘贴进来' };
+    }
+    var raw;
+    try { raw = JSON.parse(text); }
+    catch (e) { return { ok: false, error: '这不是合法的 JSON。可能粘贴时少了一段，或者选错了文件。' }; }
+    if (!raw || typeof raw !== 'object') return { ok: false, error: '备份内容的格式不对' };
+
+    var looksLikeBackup = raw.kind === BACKUP_KIND;
+    var looksLikeState = Array.isArray(raw.records);
+    if (!looksLikeBackup && !looksLikeState) {
+      return { ok: false, error: '这看起来不是「我的钱包」的备份' };
+    }
+
+    // 一律过一遍 normalize()：手改坏的备份也不会把页面搞崩，坏记录会被丢掉
+    var data = normalize(unwrap(raw));
+    var dates = data.records.map(function (r) { return r.date; }).sort();
+    return {
+      ok: true,
+      data: data,
+      meta: {
+        exportedAt: typeof raw.exportedAt === 'string' ? raw.exportedAt : '',
+        records: data.records.length,
+        categories: data.categories.length,
+        budgets: Object.keys(data.budgets).length,
+        firstDate: dates.length ? dates[0] : null,
+        lastDate: dates.length ? dates[dates.length - 1] : null
+      }
+    };
+  }
+
+  /**
+   * 把 incoming 合并进 state（就地改 state）：
+   *   · 账目按 id 去重，已有的跳过 —— 所以同一份备份合并两次不会翻倍
+   *   · 分类和预算只补缺的，不覆盖你现在的设置
+   */
+  function mergeInto(state, incoming) {
+    var haveRec = {}, haveCat = {};
+    state.records.forEach(function (r) { haveRec[r.id] = true; });
+    state.categories.forEach(function (c) { haveCat[c.id] = true; });
+
+    var recordsAdded = 0, recordsSkipped = 0;
+    incoming.records.forEach(function (r) {
+      if (haveRec[r.id]) { recordsSkipped += 1; return; }
+      state.records.push(JSON.parse(JSON.stringify(r)));
+      haveRec[r.id] = true;
+      recordsAdded += 1;
+    });
+
+    // 分类必须跟着账目一起进来，否则那些账会显示成"已删除分类"
+    var categoriesAdded = 0;
+    incoming.categories.forEach(function (c) {
+      if (haveCat[c.id]) return;
+      state.categories.push(JSON.parse(JSON.stringify(c)));
+      haveCat[c.id] = true;
+      categoriesAdded += 1;
+    });
+
+    var budgetsAdded = 0;
+    Object.keys(incoming.budgets).forEach(function (k) {
+      if (has(state.budgets, k)) return;
+      state.budgets[k] = incoming.budgets[k];
+      budgetsAdded += 1;
+    });
+
+    return {
+      recordsAdded: recordsAdded,
+      recordsSkipped: recordsSkipped,
+      categoriesAdded: categoriesAdded,
+      budgetsAdded: budgetsAdded
+    };
   }
 
   /* ---------------------------------------------------------------- 钱包对象 */
@@ -1280,6 +1679,37 @@ body { display: flex; justify-content: center; }
       if (state.records.length === before) return false;
       save();
       return true;
+    }
+
+    /**
+     * 改一笔已有的账。id 和 createdAt 不动，只换内容，另外记一个 updatedAt。
+     * 校验跟新增时完全一样 —— 改完的账和记进去时一样干净。
+     */
+    function updateRecord(id, patch) {
+      patch = patch || {};
+      var rec = null;
+      state.records.forEach(function (r) { if (r.id === id) rec = r; });
+      if (!rec) throw new Error('这一笔找不到了，可能已经被删掉了');
+
+      var amount = toCentsOrNull(patch.amount);
+      if (amount === null || amount <= 0) throw new Error('金额不正确');
+      if (!isISODate(patch.date)) throw new Error('日期不正确');
+      var type = patch.type === 'income' ? 'income' : 'expense';
+      var cat = findCategory(state, patch.categoryId);
+      if (!cat || cat.type !== type) throw new Error('请选择一个分类');
+
+      rec.type = type;
+      rec.amount = amount;
+      rec.categoryId = cat.id;
+      rec.date = patch.date;
+      rec.note = String(patch.note == null ? '' : patch.note).trim().slice(0, 60);
+      rec.method = String(patch.method == null ? '' : patch.method).trim().slice(0, 8);
+      rec.updatedAt = Date.now();
+
+      state.lastCategory[type] = cat.id;
+      if (rec.method && METHODS.indexOf(rec.method) >= 0) state.lastMethod = rec.method;
+      save();
+      return rec;
     }
 
     /** cents 传 null = 取消这个月的预算 */
@@ -1331,17 +1761,56 @@ body { display: flex; justify-content: center; }
       return state;
     }
 
+    /** 批量设置各账户的期初余额（只认 METHODS 里的账户名，没传的保持不变） */
+    function setOpeningBalances(map) {
+      map = map || {};
+      METHODS.forEach(function (m) {
+        if (!has(map, m)) return;
+        state.openingBalances[m] = toCentsSigned(map[m]);
+      });
+      save();
+      return state.openingBalances;
+    }
+
+    /* ------------------------------------------------ 备份与恢复 */
+
+    /** 导出：产出一个可以 JSON.stringify 存成文件的备份包 */
+    function exportData() { return exportPayload(state); }
+
+    /** 合并：保留现有账目，把备份里的补进来（同 id 跳过），返回做了什么 */
+    function mergeData(payload) {
+      var info = mergeInto(state, normalize(unwrap(payload)));
+      save();
+      return info;
+    }
+
+    /** 替换：清空现有数据，完全用备份覆盖 */
+    function replaceData(payload) {
+      state = normalize(unwrap(payload));
+      save();
+      return {
+        records: state.records.length,
+        categories: state.categories.length,
+        budgets: Object.keys(state.budgets).length
+      };
+    }
+
     return {
       get state() { return state; },
       /** 数据能不能真的存下来。false = 关掉页面就没了，界面必须警告 */
       get persistent() { return !storage.__memory; },
       save: save,
       addRecord: addRecord,
+      updateRecord: updateRecord,
       deleteRecord: deleteRecord,
       setBudget: setBudget,
+      setOpeningBalances: setOpeningBalances,
       addCategory: addCategory,
       deleteCategory: deleteCategory,
-      clearAll: clearAll
+      clearAll: clearAll,
+      exportData: exportData,
+      mergeData: mergeData,
+      replaceData: replaceData
     };
   }
 
@@ -1360,6 +1829,12 @@ body { display: flex; justify-content: center; }
     createWallet: createWallet,
     // 纯函数，界面直接调用
     parseAmount: parseAmount,
+    parseSignedAmount: parseSignedAmount,
+    toCentsSigned: toCentsSigned,
+    accountName: accountName,
+    openingBalancesZero: openingBalancesZero,
+    accountBalances: accountBalances,
+    balanceUpTo: balanceUpTo,
     formatMoney: formatMoney,
     esc: esc,
     toCentsOrNull: toCentsOrNull,
@@ -1382,6 +1857,11 @@ body { display: flex; justify-content: center; }
     summary: summary,
     categoryTotals: categoryTotals,
     dailyTotals: dailyTotals,
+    BACKUP_KIND: BACKUP_KIND,
+    exportPayload: exportPayload,
+    parseBackup: parseBackup,
+    mergeInto: mergeInto,
+    unwrap: unwrap,
     uid: uid
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
@@ -1547,6 +2027,11 @@ body { display: flex; justify-content: center; }
     heroProgress: $('heroProgress'), heroHint: $('heroHint'), btnSetBudget: $('btnSetBudget'),
     overAlert: $('overAlert'), overAmount: $('overAmount'),
     statSpent: $('statSpent'), statIncome: $('statIncome'), statNet: $('statNet'),
+    statBalance: $('statBalance'), statBalanceLabel: $('statBalanceLabel'),
+    accountList: $('accountList'), accountHint: $('accountHint'),
+    methodBalance: $('methodBalance'),
+    openingList: $('openingList'), saveOpening: $('saveOpening'),
+    openingError: $('openingError'), openingHint: $('openingHint'),
     btnAddExpense: $('btnAddExpense'), btnAddIncome: $('btnAddIncome'),
     chartMonth: $('chartMonth'), donut: $('donut'), bars: $('bars'),
     recordCount: $('recordCount'), recordList: $('recordList'),
@@ -1561,13 +2046,22 @@ body { display: flex; justify-content: center; }
     saveBudget: $('saveBudget'), clearBudget: $('clearBudget'),
     catManage: $('catManage'), newCatIcon: $('newCatIcon'), newCatName: $('newCatName'),
     newCatType: $('newCatType'), addCat: $('addCat'), catError: $('catError'),
-    clearAll: $('clearAll'), toast: $('toast')
+    clearAll: $('clearAll'),
+    openBackup: $('openBackup'),
+    backup: $('backup'), backupClose: $('backupClose'),
+    doDownload: $('doDownload'), doCopy: $('doCopy'), exportText: $('exportText'),
+    importFile: $('importFile'), importText: $('importText'),
+    importPreview: $('importPreview'), doMerge: $('doMerge'), doReplace: $('doReplace'),
+    backupError: $('backupError'),
+    recordHint: $('recordHint'),
+    toast: $('toast')
   };
 
   // ---- 界面状态
   var viewMonth = W.currentMonthKey();
   var sheetType = 'expense';
   var sheetCat = null;
+  var editingId = null;   // 非空 = 正在改一笔已有的账（而不是新增）
   var toastTimer = null;
 
   // ------------------------------------------------------------ 格式化
@@ -1593,6 +2087,7 @@ body { display: flex; justify-content: center; }
     renderMonthBar();
     renderHero();
     renderStats();
+    renderAccounts();
     renderCharts();
     renderList();
   }
@@ -1644,6 +2139,33 @@ body { display: flex; justify-content: center; }
     el.statIncome.textContent = money(s.income);
     el.statNet.textContent = signedMoney(s.net);
     el.statNet.className = 'stat-value' + (s.net > 0 ? ' in' : s.net < 0 ? ' out' : '');
+
+    var isCur = viewMonth === W.currentMonthKey();
+    el.statBalanceLabel.textContent = isCur ? '当前余额' : Number(viewMonth.slice(5, 7)) + '月底余额';
+    el.statBalance.textContent = signedMoney(s.balance);
+    el.statBalance.className = 'stat-value' + (s.balance < 0 ? ' bad' : '');
+  }
+
+  /** 各账户余额：账户就是记账时选的"支付方式"，所以记一笔这里就跟着变 */
+  function renderAccounts() {
+    var ab = W.accountBalances(st(), viewMonth);
+    el.accountHint.textContent = viewMonth === W.currentMonthKey() ? '现在' : W.monthLabel(viewMonth) + '底';
+
+    var rows = ab.list.map(function (a) {
+      return '<div class="account-row">' +
+        '<span class="acc-name">' + W.esc(a.name) + '</span>' +
+        '<span class="acc-count">' + (a.count ? a.count + ' 笔' : '') + '</span>' +
+        '<span class="acc-amt' + (a.amount < 0 ? ' bad' : '') + '">' + signedMoney(a.amount) + '</span>' +
+        '</div>';
+    }).join('');
+
+    rows += '<div class="account-row is-total">' +
+      '<span class="acc-name">合计</span>' +
+      '<span class="acc-count">' + (ab.total.count ? ab.total.count + ' 笔' : '') + '</span>' +
+      '<span class="acc-amt' + (ab.total.amount < 0 ? ' bad' : '') + '">' + signedMoney(ab.total.amount) + '</span>' +
+      '</div>';
+
+    el.accountList.innerHTML = rows;
   }
 
   function renderCharts() {
@@ -1658,6 +2180,7 @@ body { display: flex; justify-content: center; }
   function renderList() {
     var recs = W.monthRecords(st(), viewMonth);
     el.recordCount.textContent = recs.length ? recs.length + ' 笔' : '';
+    el.recordHint.textContent = recs.length ? ' · 点一行可修改' : '';
 
     if (!recs.length) {
       el.recordList.innerHTML = '<p class="empty">这个月还没有记录，点上面的按钮记第一笔吧</p>';
@@ -1690,7 +2213,7 @@ body { display: flex; justify-content: center; }
       var rows = g.list.map(function (r) {
         var c = W.findCategory(st(), r.categoryId);
         var amt = (r.type === 'income' ? '+' : '−') + money(r.amount);
-        return '<div class="record">' +
+        return '<div class="record" data-id="' + W.esc(r.id) + '" title="点一下改这一笔">' +
           '<span class="rec-icon">' + W.esc(c ? c.icon : '❓') + '</span>' +
           '<div class="rec-main">' +
             '<div class="rec-name">' + W.esc(c ? c.name : '已删除分类') +
@@ -1730,6 +2253,17 @@ body { display: flex; justify-content: center; }
     }).join('');
   }
 
+  /** 正在改的那一笔，原来在这个月里算了多少（改了月份就按 0 算） */  function editingAdjust(key) {
+    var out = { spent: 0, income: 0 };
+    if (!editingId) return out;
+    var orig = null;
+    st().records.forEach(function (r) { if (r.id === editingId) orig = r; });
+    if (!orig || orig.date.slice(0, 7) !== key) return out;
+    if (orig.type === 'income') out.income = orig.amount;
+    else out.spent = orig.amount;
+    return out;
+  }
+
   /** 实时预览：让"减法/加法同时进行"在按下保存之前就能看见 */
   function renderPreview() {
     var cents = W.parseAmount(el.amountInput.value);
@@ -1738,44 +2272,107 @@ body { display: flex; justify-content: center; }
     var s = W.summary(st(), key);
     var name = W.monthLabel(key);
 
+    // 改一笔的时候，原来那笔已经算进本月合计了，得先扣掉再算新的；
+    // 否则预览会把旧的那笔重复算一遍，数字凭空变小。
+    var adj = editingAdjust(key);
+    var spentBase = s.spent - adj.spent;
+    var incomeBase = s.income - adj.income;
+    var remBase = s.hasBudget ? s.budget - spentBase : null;
+    var verb = editingId ? '改完后 ' : '记完后 ';
+
     el.preview.classList.remove('is-over');
 
     if (cents === null) {
       el.preview.innerHTML = s.hasBudget
-        ? name + '预算 ' + money(s.budget) + '，已花 ' + money(s.spent) + '，还剩 <b>' + signedMoney(s.remaining) + '</b>。'
+        ? name + '预算 ' + money(s.budget) + '，已花 ' + money(spentBase) + '，还剩 <b>' + signedMoney(remBase) + '</b>。'
         : name + '还没设预算，只统计支出和收入。';
       return;
     }
 
     if (sheetType === 'expense') {
       if (!s.hasBudget) {
-        el.preview.innerHTML = '记完后 ' + name + '一共花了 <b>' + money(s.spent + cents) + '</b>（这个月没设预算）。';
+        el.preview.innerHTML = verb + name + '一共花了 <b>' + money(spentBase + cents) + '</b>（这个月没设预算）。';
         return;
       }
-      var rem = s.remaining - cents;
+      var rem = remBase - cents;
       if (rem < 0) el.preview.classList.add('is-over');
-      el.preview.innerHTML = '记完后 ' + name + '还剩 <b>' + signedMoney(rem) + '</b>（预算 ' + money(s.budget) + '）' +
+      el.preview.innerHTML = verb + name + '还剩 <b>' + signedMoney(rem) + '</b>（预算 ' + money(s.budget) + '）' +
         (rem < 0 ? '，会超出预算' : '');
     } else {
-      el.preview.innerHTML = '记完后 ' + name + '结余 <b>' + signedMoney(s.net + cents) + '</b>' +
-        '（收入 ' + money(s.income + cents) + ' − 支出 ' + money(s.spent) + '）。收入不占用预算额度。';
+      el.preview.innerHTML = verb + name + '结余 <b>' + signedMoney(incomeBase - spentBase + cents) + '</b>' +
+        '（收入 ' + money(incomeBase + cents) + ' − 支出 ' + money(spentBase) + '）。收入不占用预算额度。';
     }
+
+    renderMethodBalance();
   }
 
-  function openSheet(type) {
-    sheetType = type === 'income' ? 'income' : 'expense';
+  /**
+   * 记账弹层里的"账户联动"：选中的账户，记完这一笔之后还剩多少。
+   * 这是"分账户 + 记账联动"最直观的地方 —— 还没保存就告诉你这个账户会变成多少。
+   */
+  function renderMethodBalance() {
+    var method = el.methodSelect.value || st().lastMethod;
+    var date = W.isISODate(el.dateInput.value) ? el.dateInput.value : W.todayISO();
+    var key = W.monthKey(date);
+    var ab = W.accountBalances(st(), key);
+
+    var acc = null;
+    ab.list.forEach(function (a) { if (a.name === method) acc = a; });
+    if (!acc) { el.methodBalance.innerHTML = ''; return; }
+
+    // 改一笔时，原来那笔已经算进这个账户了，先还原再算新的
+    var base = acc.amount;
+    if (editingId) {
+      var orig = null;
+      st().records.forEach(function (r) { if (r.id === editingId) orig = r; });
+      if (orig && orig.date.slice(0, 7) === key && W.accountName(orig.method) === method) {
+        base += (orig.type === 'income' ? -orig.amount : orig.amount);
+      }
+    }
+
+    var label = key === W.currentMonthKey() ? '现在' : W.monthLabel(key) + '底';
+    var cents = W.parseAmount(el.amountInput.value);
+    if (cents === null) {
+      el.methodBalance.innerHTML = W.esc(acc.name) + ' ' + label + ' <b>' + signedMoney(base) + '</b>';
+      return;
+    }
+
+    var after = base + (sheetType === 'income' ? cents : -cents);
+    el.methodBalance.innerHTML = W.esc(acc.name) + ' ' + label + ' <b>' + signedMoney(base) + '</b>' +
+      '<span class="arrow">→</span>记完 <b' + (after < 0 ? ' class="after-bad"' : '') + '>' + signedMoney(after) + '</b>';
+  }
+
+  /**
+   * 打开记账弹层。
+   * 传了 record 就是"改这一笔"（字段全部回填），不传就是新增。
+   */
+  function openSheet(type, record) {
+    editingId = record ? record.id : null;
+    sheetType = (record ? record.type : type) === 'income' ? 'income' : 'expense';
     el.tabExpense.classList.toggle('is-active', sheetType === 'expense');
     el.tabIncome.classList.toggle('is-active', sheetType === 'income');
-    el.amountInput.value = '';
-    el.noteInput.value = '';
-    el.dateInput.value = W.todayISO();
     el.methodLabel.textContent = sheetType === 'income' ? '到账方式' : '支付方式';
     setError(el.sheetError, '');
     renderMethods();
 
     var cats = W.categoriesOf(st(), sheetType);
-    var last = st().lastCategory[sheetType];
-    sheetCat = cats.some(function (c) { return c.id === last; }) ? last : (cats[0] ? cats[0].id : null);
+
+    if (record) {
+      el.amountInput.value = W.formatMoney(record.amount).replace(/,/g, '');
+      el.dateInput.value = record.date;
+      el.noteInput.value = record.note || '';
+      if (record.method) el.methodSelect.value = record.method;
+      sheetCat = W.findCategory(st(), record.categoryId) ? record.categoryId
+        : (cats[0] ? cats[0].id : null);
+      el.saveRecord.textContent = '保存修改';
+    } else {
+      el.amountInput.value = '';
+      el.noteInput.value = '';
+      el.dateInput.value = W.todayISO();
+      var last = st().lastCategory[sheetType];
+      sheetCat = cats.some(function (c) { return c.id === last; }) ? last : (cats[0] ? cats[0].id : null);
+      el.saveRecord.textContent = '保存';
+    }
 
     renderCatGrid();
     renderPreview();
@@ -1783,7 +2380,10 @@ body { display: flex; justify-content: center; }
     setTimeout(function () { if (el.amountInput.focus) el.amountInput.focus(); }, 30);
   }
 
-  function closeSheet() { el.sheet.hidden = true; }
+  function closeSheet() {
+    el.sheet.hidden = true;
+    editingId = null;
+  }
 
   function saveCurrent() {
     var cents = W.parseAmount(el.amountInput.value);
@@ -1796,16 +2396,18 @@ body { display: flex; justify-content: center; }
     if (!W.isISODate(el.dateInput.value)) { setError(el.sheetError, '日期没填对。'); return; }
 
     var cat = W.findCategory(st(), sheetCat);
+    var wasEdit = !!editingId;
     var rec;
     try {
-      rec = wallet.addRecord({
+      var payload = {
         type: sheetType,
         amount: cents,
         categoryId: sheetCat,
         date: el.dateInput.value,
         note: el.noteInput.value,
         method: el.methodSelect.value
-      });
+      };
+      rec = wasEdit ? wallet.updateRecord(editingId, payload) : wallet.addRecord(payload);
     } catch (err) {
       setError(el.sheetError, err.message);
       return;
@@ -1817,15 +2419,25 @@ body { display: flex; justify-content: center; }
 
     var s = W.summary(st(), viewMonth);
     var name = W.monthLabel(viewMonth);
+    var verb = wasEdit ? '已改 ' : '已记 ';
+
+    // 顺便报出这个账户的余额 —— 这就是"分账户和记账联动"最直接的反馈
+    var accName = W.accountName(rec.method);
+    var accAfter = s.balance;
+    W.accountBalances(st(), viewMonth).list.forEach(function (a) { if (a.name === accName) accAfter = a.amount; });
+    var accPart = accName + ' ' + signedMoney(accAfter);
+
     if (rec.type === 'expense') {
       if (s.hasBudget) {
-        toast('已记 ' + cat.name + ' ' + money(rec.amount) + '　→　' + name + '还剩 ' + signedMoney(s.remaining) +
-          (s.over ? '（已超支）' : ''));
+        toast(verb + cat.name + ' ' + money(rec.amount) + '　→　' + accPart +
+          ' · ' + name + '还剩 ' + signedMoney(s.remaining) + (s.over ? '（已超支）' : ''));
       } else {
-        toast('已记 ' + cat.name + ' ' + money(rec.amount) + '　→　' + name + '共花 ' + money(s.spent));
+        toast(verb + cat.name + ' ' + money(rec.amount) + '　→　' + accPart +
+          ' · ' + name + '共花 ' + money(s.spent));
       }
     } else {
-      toast('已记收入 ' + money(rec.amount) + '　→　' + name + '结余 ' + signedMoney(s.net) + '，预算不受影响');
+      toast(verb + '收入 ' + money(rec.amount) + '　→　' + accPart +
+        ' · ' + name + '结余 ' + signedMoney(s.net) + '，预算不受影响');
     }
   }
 
@@ -1847,6 +2459,21 @@ body { display: flex; justify-content: center; }
     else if (eff.amount !== null) hint = '本月预算 ' + money(eff.amount) + '。每记一笔支出，它就会自动减少同样多。';
     else hint = '还没设过预算。先设一个，记账的时候就能看到"还剩多少"。';
     el.budgetHint.textContent = hint;
+
+    // 各账户期初余额
+    var opens = s.openingBalances || {};
+    el.openingList.innerHTML = W.METHODS.map(function (m) {
+      var v = W.toCentsSigned(opens[m]);
+      return '<div class="opening-row">' +
+        '<span class="opening-name">' + W.esc(m) + '</span>' +
+        '<input class="text-input" type="text" inputmode="decimal" data-opening="' + W.esc(m) + '" ' +
+        'value="' + (v ? W.formatMoney(v).replace(/,/g, '') : '') + '" placeholder="0" ' +
+        'aria-label="' + W.esc(m) + '期初余额">' +
+        '</div>';
+    }).join('');
+    var ab = W.accountBalances(s, viewMonth);
+    el.openingHint.textContent = '各账户余额合计 ' + signedMoney(ab.total.amount) +
+      '（截至 ' + (viewMonth === W.currentMonthKey() ? '现在' : W.monthLabel(viewMonth) + '底') + '）。';
 
     el.catManage.innerHTML = s.categories.map(function (c) {
       var n = s.records.filter(function (r) { return r.categoryId === c.id; }).length;
@@ -1870,6 +2497,56 @@ body { display: flex; justify-content: center; }
   }
 
   function closeSettings() { el.settings.hidden = true; }
+
+  /* -------------------------------------------------------- 备份与恢复 */
+
+  function backupJson() { return JSON.stringify(wallet.exportData(), null, 2); }
+
+  function openBackup() {
+    setError(el.backupError, '');
+    el.importText.value = '';
+    el.importFile.value = '';
+    el.exportText.value = backupJson();
+    renderImportPreview();
+    el.backup.hidden = false;
+  }
+
+  function closeBackup() { el.backup.hidden = true; }
+
+  /** 校验当前粘贴/选中的备份，并把它里面有什么显示出来 */
+  function renderImportPreview() {
+    var parsed = W.parseBackup(el.importText.value);
+    el.doMerge.disabled = !parsed.ok;
+    el.doReplace.disabled = !parsed.ok;
+
+    if (!parsed.ok) {
+      el.importPreview.innerHTML = el.importText.value.trim()
+        ? '<span class="preview-bad">' + W.esc(parsed.error) + '</span>'
+        : '<span class="muted">还没有选择或粘贴备份内容。</span>';
+      return null;
+    }
+
+    var m = parsed.meta;
+    var when = m.exportedAt ? m.exportedAt.slice(0, 19).replace('T', ' ') : '';
+    el.importPreview.innerHTML =
+      '这份备份里有 <b>' + m.records + '</b> 笔账' +
+      (m.firstDate ? '（' + W.esc(m.firstDate) + ' ~ ' + W.esc(m.lastDate) + '）' : '') +
+      '、<b>' + m.categories + '</b> 个分类、<b>' + m.budgets + '</b> 个月的预算。' +
+      (when ? '<br>导出时间：' + W.esc(when) : '');
+    return parsed;
+  }
+
+  /** 恢复/合并完之后，跳到有数据的那个月，免得对着空页面发懵 */
+  function jumpToLatestMonth() {
+    var dates = st().records.map(function (r) { return r.date; }).sort();
+    viewMonth = dates.length ? W.monthKey(dates[dates.length - 1]) : W.currentMonthKey();
+  }
+
+  function afterRestore() {
+    renderAll();
+    renderSettings();
+    el.exportText.value = backupJson();
+  }
 
   // -------------------------------------------------------------- 事件
 
@@ -1916,6 +2593,7 @@ body { display: flex; justify-content: center; }
     el.amountInput.addEventListener('input', renderPreview);
     el.amountInput.addEventListener('change', renderPreview);
     el.dateInput.addEventListener('change', renderPreview);
+    el.methodSelect.addEventListener('change', renderMethodBalance);
     el.amountInput.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') { e.preventDefault(); saveCurrent(); }
     });
@@ -1924,23 +2602,34 @@ body { display: flex; justify-content: center; }
     });
     el.saveRecord.addEventListener('click', saveCurrent);
 
-    // 删除一笔
+    // 明细：点 ✕ 删除，点整行改这一笔
     el.recordList.addEventListener('click', function (e) {
-      var btn = e.target.closest ? e.target.closest('[data-del]') : null;
-      if (!btn) return;
-      var id = btn.getAttribute('data-del');
+      var closest = function (sel) { return e.target.closest ? e.target.closest(sel) : null; };
+
+      var del = closest('[data-del]');
+      if (del) {
+        var delId = del.getAttribute('data-del');
+        var delRec = null;
+        st().records.forEach(function (r) { if (r.id === delId) delRec = r; });
+        if (!delRec) return;
+        var delCat = W.findCategory(st(), delRec.categoryId);
+        var ok = window.confirm('删除这一笔？\n\n' + (delCat ? delCat.name : '这笔') + '　' +
+          (delRec.type === 'income' ? '+' : '−') + money(delRec.amount) + '　' + delRec.date +
+          '\n\n删掉后预算和结余都会跟着恢复。');
+        if (!ok) return;
+        wallet.deleteRecord(delId);
+        renderAll();
+        if (!el.settings.hidden) renderSettings();
+        toast('已删掉这一笔，数字都恢复了');
+        return;
+      }
+
+      var row = closest('[data-id]');
+      if (!row) return;
+      var id = row.getAttribute('data-id');
       var rec = null;
       st().records.forEach(function (r) { if (r.id === id) rec = r; });
-      if (!rec) return;
-      var c = W.findCategory(st(), rec.categoryId);
-      var ok = window.confirm('删除这一笔？\n\n' + (c ? c.name : '这笔') + '　' +
-        (rec.type === 'income' ? '+' : '−') + money(rec.amount) + '　' + rec.date +
-        '\n\n删掉后预算和结余都会跟着恢复。');
-      if (!ok) return;
-      wallet.deleteRecord(id);
-      renderAll();
-      if (!el.settings.hidden) renderSettings();
-      toast('已删掉这一笔，数字都恢复了');
+      if (rec) openSheet(rec.type, rec);
     });
 
     // 设置：预算
@@ -1960,6 +2649,29 @@ body { display: flex; justify-content: center; }
       renderSettings();
       renderAll();
       toast(W.monthLabel(viewMonth) + '不再显示预算，支出收入照常统计');
+    });
+
+    // 设置：各账户期初余额
+    el.saveOpening.addEventListener('click', function () {
+      var inputs = el.openingList.querySelectorAll('[data-opening]');
+      var map = {};
+      var bad = null;
+      Array.prototype.forEach.call(inputs, function (inp) {
+        var m = inp.getAttribute('data-opening');
+        var raw = String(inp.value == null ? '' : inp.value).trim();
+        var cents = raw === '' ? 0 : W.parseSignedAmount(raw);   // 留空 = 0
+        if (cents === null) { if (!bad) bad = m; return; }
+        map[m] = cents;
+      });
+      if (bad) {
+        setError(el.openingError, '「' + bad + '」填的不是有效金额。可以写 0、-50、1200.50。');
+        return;
+      }
+      wallet.setOpeningBalances(map);
+      setError(el.openingError, '');
+      renderSettings();
+      renderAll();
+      toast('期初余额已保存，各账户余额跟着更新了');
     });
 
     // 设置：分类
@@ -2010,10 +2722,101 @@ body { display: flex; justify-content: center; }
       toast('数据已清空，可以从头开始记了');
     });
 
+    // 备份与恢复
+    el.openBackup.addEventListener('click', function () {
+      closeSettings();
+      openBackup();
+    });
+    el.backupClose.addEventListener('click', closeBackup);
+    el.backup.addEventListener('click', function (e) { if (e.target === el.backup) closeBackup(); });
+
+    el.doDownload.addEventListener('click', function () {
+      try {
+        var blob = new Blob([backupJson()], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = '我的钱包-备份-' + W.todayISO() + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 3000);
+        setError(el.backupError, '');
+        toast('备份文件开始下载了，找个地方收好');
+      } catch (err) {
+        setError(el.backupError, '这个浏览器不让自动下载。点「复制到剪贴板」，或者选中上面文本框里的内容手动复制。');
+      }
+    });
+
+    el.doCopy.addEventListener('click', function () {
+      var text = backupJson();
+      el.exportText.value = text;
+      var manual = function (msg) {
+        try { el.exportText.focus(); el.exportText.select(); } catch (e2) { /* 选不中就算了 */ }
+        setError(el.backupError, msg);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          setError(el.backupError, '');
+          toast('备份内容已复制，粘到备忘录或"文件传输助手"里存着');
+        }).catch(function () {
+          manual('浏览器不让自动复制。内容已经帮你选中了，按 Ctrl+C（手机上长按 → 拷贝）就行。');
+        });
+      } else {
+        manual('这个浏览器不支持自动复制。内容已经帮你选中了，按 Ctrl+C（手机上长按 → 拷贝）就行。');
+      }
+    });
+
+    el.importText.addEventListener('input', function () {
+      setError(el.backupError, '');
+      renderImportPreview();
+    });
+
+    el.importFile.addEventListener('change', function () {
+      var f = el.importFile.files && el.importFile.files[0];
+      if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        el.importText.value = String(reader.result == null ? '' : reader.result);
+        setError(el.backupError, '');
+        renderImportPreview();
+      };
+      reader.onerror = function () {
+        setError(el.backupError, '这个文件读不出来。换个办法：把备份内容粘贴到下面的框里。');
+      };
+      reader.readAsText(f);
+    });
+
+    el.doMerge.addEventListener('click', function () {
+      var parsed = renderImportPreview();
+      if (!parsed) { setError(el.backupError, W.parseBackup(el.importText.value).error); return; }
+      var info = wallet.mergeData(parsed.data);
+      setError(el.backupError, '');
+      jumpToLatestMonth();
+      afterRestore();
+      var msg = '已合并：新增 ' + info.recordsAdded + ' 笔账';
+      if (info.recordsSkipped) msg += '，跳过 ' + info.recordsSkipped + ' 笔本来就有的';
+      if (info.categoriesAdded) msg += '，补了 ' + info.categoriesAdded + ' 个分类';
+      toast(msg + '。现在一共 ' + st().records.length + ' 笔');
+    });
+
+    el.doReplace.addEventListener('click', function () {
+      var parsed = renderImportPreview();
+      if (!parsed) { setError(el.backupError, W.parseBackup(el.importText.value).error); return; }
+      if (!window.confirm('完全替换？\n\n这台设备上现在的所有账目、预算、分类都会被删掉，只用备份里的内容。')) return;
+      if (!window.confirm('真的确定吗？换掉之后旧数据就找不回来了。')) return;
+      var info = wallet.replaceData(parsed.data);
+      setError(el.backupError, '');
+      jumpToLatestMonth();
+      afterRestore();
+      toast('已用备份替换：现在有 ' + info.records + ' 笔账、' + info.budgets + ' 个月的预算');
+    });
+
     // Esc 关闭弹层
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
-      if (!el.sheet.hidden) closeSheet();
+      if (!el.backup.hidden) { closeBackup(); return; }
+      if (!el.sheet.hidden) { closeSheet(); return; }
       if (!el.settings.hidden) closeSettings();
     });
   }
