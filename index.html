@@ -4,17 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>我的钱包</title>
+<title>丸梓钱包</title>
 <!-- 单文件版：CSS 和 JS 都已内联，可以单独发给别人 -->
 <!-- iPhone / iPad：加到主屏幕后全屏运行，看起来像个小 App -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="我的钱包">
+<meta name="apple-mobile-web-app-title" content="丸梓钱包">
 <meta name="theme-color" content="#3d7eff">
 <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAACoUlEQVR42u3cwW3CQBRFUTdGFfTjCthRBRWwowpXwI4lFQwaUQEjsJj3j6W7SyR7fBII/pPlsLYmpbRYBAEtAS0BLQEtoCWgJaAloCWgBbQEtAS0BLQEtICWgJaAloCWgBbQEtAS0BLQEtACWgJaAloCWgJaQEtAS0BLQEtAC2gJaAloCWgBbSEEtAS0BLRUDPRta0NH/760G1p9LRY3EuakNVj8dmrtfJ3/2vs1eJUKfA+93cdu7HqZ95r7uY8cfa28h/7zjqfWHs86qEcx9zXqawU01DADDTXMQEMNM9DfRP2PN7+fE8zFnxSmIEj74QS68Mt0tU9vgA5GDTPQMahhBjoGNcxARz0urvgYH+jQgZ7Kg1ZAh41cGgMFOgYQzEDHQIIZ6BjUMAMd88eY3SZAx3xcZrcJ0DEPNIyBAh2DGmagY1DDDHQMapiBjhmst9sE6JhdL3abAB01dmoMFOgo1DADXRo1zEDHoIYZ6BjUMAM95a4Xu02AjpvQMzkHdCRqmIEGWkB7ywG0fogbYqCBFtBAAy2ggRbQQAMtoIEW0EADnZHjfQANNNBAAw000EADDTTQQAMNNNBAAw000EADDTTQQAMNNNBAAz31fMVeffJPGfvX7nluQMtwEtBAAw000AIaaAENNNACGmiggQYaaAENtIAGGmizHGY5gAYaaKCBBhpooIEGGmiggQYaaKCBBhpooIEGGmiggQYaaKCBtuvbrm+gDScJaKCBFtBAC2iggQYaaKAFNNBAC2igBTTQQFsvoCWgBbQEtAS0BLQEtICWgJaAloCWgBbQEtAS0BLQEtACWgJaAloCWkBbBAEtAS0BLQEtoCWgJaAloCWgBbQEtAS0BLQEtICWgJaAloCWgBbQEtAS0BLQEtDK7gVbT9CBMehLGQAAAABJRU5ErkJggg==">
 <style>
-/* 我的钱包 — 样式
+/* 丸梓钱包 — 样式
  * 手机 App 风格：单列竖屏，最大 480px，桌面浏览器里居中显示成一部长手机。
  * 颜色全部走 CSS 变量，想换主题改最上面那一段就够了。
  */
@@ -297,6 +297,7 @@ body { display: flex; justify-content: center; }
   font-weight: 700;
 }
 .account-row.is-total .acc-amt { font-size: 15px; }
+.acc-unknown { font-size: 13px; color: var(--muted); line-height: 1.6; margin: 4px 0; }
 
 /* ------------------------------------------- 记账弹层里的账户联动 */
 
@@ -310,7 +311,7 @@ body { display: flex; justify-content: center; }
 .method-balance .arrow { margin: 0 4px; }
 .method-balance .after-bad { color: var(--bad); }
 
-/* --------------------------------------------- 设置里的期初余额 */
+/* --------------------------------------------- 设置里的"现在有多少钱" */
 
 .opening-list { margin-bottom: 8px; }
 .opening-row {
@@ -318,6 +319,7 @@ body { display: flex; justify-content: center; }
   align-items: center;
   gap: 8px;
   margin-bottom: 6px;
+  flex-wrap: wrap;
 }
 .opening-row .opening-name {
   flex: 0 0 76px;
@@ -326,7 +328,41 @@ body { display: flex; justify-content: center; }
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.opening-row .text-input { flex: 1 1 auto; }
+.opening-row .text-input {
+  flex: 1 1 auto;
+  /* .text-input 全局是 width:100%，在 flex 行里会把自己挤到下一行去，
+   * 变成"账户名一行、输入框一行、说明一行"，五个账户就长得没边了 */
+  width: auto;
+  min-width: 0;
+}
+.opening-row .opening-sub {
+  flex: 1 1 100%;
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: -2px 0 4px 84px;
+  line-height: 1.5;
+}
+
+/* --------------------------------------------- 备份弹层里的"退回上一步" */
+
+.undo-list { display: grid; gap: 8px; margin-bottom: 8px; }
+.undo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+}
+.undo-what { flex: 1 1 auto; min-width: 0; }
+.undo-when {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.undo-none { font-size: 13px; color: var(--muted); padding: 4px 2px 8px; }
 
 /* -------------------------------------------------------------- 按钮 */
 
@@ -789,7 +825,7 @@ body { display: flex; justify-content: center; }
 
   <!-- 顶部：标题 + 设置 -->
   <header class="topbar">
-    <div class="brand">我的钱包</div>
+    <div class="brand">丸梓钱包</div>
     <button id="btnSettings" class="icon-btn" title="设置" aria-label="设置">⚙️</button>
   </header>
 
@@ -845,7 +881,7 @@ body { display: flex; justify-content: center; }
     </div>
     <div id="accountList" class="account-list"></div>
     <p class="hint">
-      余额 = 期初余额 + 收入 − 支出，跨月累计。账户就是记账时选的「支付方式」。
+      余额 = 你上次对账填的数 + 那之后的收入 − 支出，跨月累计。账户就是记账时选的「支付方式」。
     </p>
   </section>
 
@@ -958,15 +994,15 @@ body { display: flex; justify-content: center; }
       <p class="hint" id="budgetHint"></p>
       <div id="budgetError" class="error" hidden></div>
 
-      <div class="field-label">各账户期初余额（元）</div>
+      <div class="field-label">现在各账户里有多少钱（元）</div>
       <p class="hint">
-        开始记账那一刻，每个账户里本来有多少钱。不填就是 0。
-        可以是负数（比如信用卡欠着钱）。填完之后，余额 = 这些数 + 各自账户的收入 − 支出。
+        填<b>现在实际有多少钱</b>就行 —— 钱包里、支付宝里、卡里，各自对一下。
+        跟记账一样，直接写数字，负数表示欠着钱。
       </p>
-      <div id="openingList" class="opening-list"></div>
-      <button id="saveOpening" class="btn btn-primary btn-sm">保存期初余额</button>
-      <div id="openingError" class="error" hidden></div>
-      <p class="hint" id="openingHint"></p>
+      <div id="balanceList" class="opening-list"></div>
+      <button id="saveBalance" class="btn btn-primary btn-sm">保存，按这个数算</button>
+      <div id="balanceError" class="error" hidden></div>
+      <p class="hint" id="balanceHint"></p>
 
       <div class="field-label">分类管理</div>
       <p class="hint">删除分类前，得先处理掉用到它的记录。</p>
@@ -1036,9 +1072,18 @@ body { display: flex; justify-content: center; }
       <div id="backupError" class="error" hidden></div>
       <p class="hint">
         <b>合并进来</b>：保留现在的账，只把备份里多出来的账目加进来（同一笔不会重复）——
-        两台手机想凑成一本账就用这个。<br>
+        两台手机想凑成一本账就用这个。余额也会一起带过来；要是这台设备自己也对过账，
+        会保留本机的数并告诉你两边差多少。<br>
         <b>完全替换</b>：清空这台设备上的所有数据，只用备份里的（会问你两次）。
       </p>
+
+      <div class="field-label">③ 退回上一步</div>
+      <p class="hint">
+        上面两个按钮、还有「清空所有数据」，动手之前都会自动把当前数据原样存一份在这儿。
+        恢复错了、手滑了，点一下就能退回去。
+      </p>
+      <div id="undoList" class="undo-list"></div>
+      <div id="undoError" class="error" hidden></div>
     </div>
   </div>
 </div>
@@ -1046,7 +1091,7 @@ body { display: flex; justify-content: center; }
 <div id="toast" class="toast" hidden></div>
 
 <script>
-/* 我的钱包 — 数据层
+/* 丸梓钱包 — 数据层
  *
  * 这个文件只负责"数据怎么算、怎么存"，完全不碰界面。
  * 好处：算钱的逻辑可以单独测试，界面随便改都不会算错账。
@@ -1142,6 +1187,97 @@ body { display: flex; justify-content: center; }
     var o = {};
     METHODS.forEach(function (m) { o[m] = 0; });
     return o;
+  }
+
+  /* ---------------------------------------------------------------- 余额基准点
+   *
+   * 用户脑子里的余额是"我现在有 3000 块"，不是"我一开始有 2000 块"。
+   * 所以存的是一串「基准点」：某天的某一刻，各账户里实际有多少钱。
+   *
+   *     截至某天的余额 = 最近一个不晚于那天的基准点 + 那之后的所有收支
+   *
+   * 为什么基准点要带日期和时刻：
+   *   - 带日期：今天校准"我现在有 3000"不该把上个月的月底余额一起挪走 ——
+   *     那个数是那个月真实的余额，账本本来就算得出来，不该被后来的校准改写。
+   *   - 带时刻：今天校准完，今天再记一笔支出，余额得跟着减。如果只比日期，
+   *     同一天的账会被当成"校准之前就有的"，记了也不减，用户会以为软件坏了。
+   *
+   * 老版本只有一个 openingBalances（不分时间的期初）。迁移时把它当成
+   * 1970-01-01 那一刻的基准点，算出来的每一个数字都和以前一模一样。
+   */
+  var ANCHOR_EPOCH = '1970-01-01';
+  var MAX_ANCHORS = 60;
+
+  function sumAmounts(amounts) {
+    var n = 0;
+    METHODS.forEach(function (m) { n += toCentsSigned((amounts || {})[m]); });
+    return n;
+  }
+
+  function cloneAmounts(amounts) {
+    var o = openingBalancesZero();
+    METHODS.forEach(function (m) { o[m] = toCentsSigned((amounts || {})[m]); });
+    return o;
+  }
+
+  /** 把一堆基准点洗干净：坏日期丢掉，账户名只留认识的，按时间排好 */
+  function normalizeAnchors(raw, opening) {
+    var list = [];
+    if (Array.isArray(raw)) {
+      raw.forEach(function (a) {
+        if (!a || typeof a !== 'object' || !isISODate(a.date)) return;
+        var amounts = openingBalancesZero();
+        var src = (a.amounts && typeof a.amounts === 'object') ? a.amounts : {};
+        METHODS.forEach(function (m) { amounts[m] = toCentsSigned(src[m]); });
+        list.push({
+          date: a.date,
+          at: Number(a.at) || 0,          // 只用来显示"上次校准是什么时候"
+          rev: (typeof a.rev === 'number') ? a.rev : -1,   // 同一天的先后顺序靠这个
+          amounts: amounts
+        });
+      });
+    }
+    if (!list.length && opening && typeof opening === 'object') {
+      /* 从老数据迁移：openingBalances → 1970-01-01 的基准点。
+       * rev = -1 表示"比所有账都早"，所以每一笔账都会算进去 —— 跟老版本算出来的数一样。
+       * 新钱包没有 openingBalances，就一个基准点都不建（见 defaultState 里的说明）。 */
+      var base = openingBalancesZero();
+      METHODS.forEach(function (m) { base[m] = toCentsSigned(opening[m]); });
+      list.push({ date: ANCHOR_EPOCH, at: 0, rev: -1, amounts: base });
+    }
+    list.sort(byDateAt);
+    if (list.length > MAX_ANCHORS) list = list.slice(list.length - MAX_ANCHORS);
+    return list;
+  }
+
+  /** 算到 end（'YYYY-MM-31'）为止该从哪个基准点起算 */
+  function anchorFor(state, end) {
+    var list = state.balanceAnchors;
+    if (!list || !list.length) return { date: ANCHOR_EPOCH, at: 0, amounts: openingBalancesZero() };
+    var pick = list[0];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].date <= end) pick = list[i];
+      else break;
+    }
+    return pick;
+  }
+
+  /**
+   * 这一笔账在基准点之后发生吗？只有之后的才往余额上加。
+   * 基准点那一刻之前的账，已经算进基准点那个数字里了（用户就是照着"现在有多少钱"填的）。
+   *
+   * 两条规则：
+   *   · 日子不一样 → 按日子比。以前的账（哪怕后来才补录）不加到"现在"上，
+   *     因为用户校准"我现在有 3000"的时候，那笔钱早就不在了。
+   *   · 同一天 → 按流水号比，不按时间戳。同一天里"先校准还是先记账"必须有个确定的答案，
+   *     而 Date.now() 会撞毫秒、也可能被系统校时往回拨，拿它当先后顺序迟早出问题。
+   *     每个钱包自己有一个只增不减的流水号，记账就 +1，基准点记下当时的号。
+   */
+  function afterAnchor(r, anchor) {
+    if (r.date > anchor.date) return true;
+    if (r.date < anchor.date) return false;
+    var aRev = (typeof anchor.rev === 'number') ? anchor.rev : -1;
+    return (Number(r.rev) || 0) > aRev;
   }
 
   /**
@@ -1276,7 +1412,12 @@ body { display: flex; justify-content: center; }
         return { id: c.id, name: c.name, icon: c.icon, type: c.type };
       }),
       records: [],              // 所有账目，不分月份，按 date 过滤
-      openingBalances: openingBalancesZero(), // 各账户期初余额（分）：开始记账时每个账户里已有的钱，可为负
+      rev: 0,                   // 只增不减的流水号：用来确定"同一天里谁先谁后"
+      /* 余额基准点：某天某刻各账户里实际有多少钱。
+       * 界面上的"当前余额" = 最近一个基准点 + 之后的收支。
+       * 新钱包一个基准点都没有，这时候一律按 0 起算（记多少就是多少）；
+       * 用户一对账，这里就多一个带日期的基准点，从那天起余额按他填的数算。 */
+      balanceAnchors: [],
       lastMethod: METHODS[0],
       lastCategory: { expense: 'c-food', income: 'i-living' }
     };
@@ -1287,12 +1428,7 @@ body { display: flex; justify-content: center; }
     var s = defaultState();
     if (!raw || typeof raw !== 'object') return s;
 
-    s.openingBalances = openingBalancesZero();
-    if (raw.openingBalances && typeof raw.openingBalances === 'object') {
-      METHODS.forEach(function (m) {
-        s.openingBalances[m] = toCentsSigned(raw.openingBalances[m]);
-      });
-    }
+    s.balanceAnchors = normalizeAnchors(raw.balanceAnchors, raw.openingBalances);
 
     if (raw.budgets && typeof raw.budgets === 'object') {
       Object.keys(raw.budgets).forEach(function (k) {
@@ -1339,11 +1475,18 @@ body { display: flex; justify-content: center; }
           date: r.date,
           note: String(r.note == null ? '' : r.note).slice(0, 60),
           method: String(r.method == null ? '' : r.method).slice(0, 8),
+          rev: Number(r.rev) || 0,
           createdAt: Number(r.createdAt) || 0,
           updatedAt: Number(r.updatedAt) || 0
         });
       });
     }
+
+    /* 流水号：不能比任何一笔已有的账低，否则新记的账会显得"比旧账还早"。
+     * 备份是别人手写的、或者被改过的时候，这一步能兜住。 */
+    var maxRev = 0;
+    s.records.forEach(function (r) { if (r.rev > maxRev) maxRev = r.rev; });
+    s.rev = Math.max(Number(raw.rev) || 0, maxRev);
 
     if (METHODS.indexOf(raw.lastMethod) >= 0) s.lastMethod = raw.lastMethod;
     if (raw.lastCategory && typeof raw.lastCategory === 'object') {
@@ -1400,8 +1543,8 @@ body { display: flex; justify-content: center; }
 
   /**
    * 各账户截至某个月月底的余额。
-   *   每个账户 = 自己的期初 + 走这个账户的收入 − 走这个账户的支出
-   *   总额     = 所有账户加起来 = 总期初 + 总收入 − 总支出
+   *   每个账户 = 最近一个基准点 + 这之后走这个账户的收入 − 支出
+   *   总额     = 所有账户加起来
    *
    * 看 9 月就是"9 月底每个账户里各有多少钱"，看本月就是"现在各有多少"。
    * 日期是 'YYYY-MM-DD' 这种定长字符串，所以 key + '-31' 天然就是"这个月最后一天之后"，
@@ -1409,30 +1552,37 @@ body { display: flex; justify-content: center; }
    */
   function accountBalances(state, key) {
     var end = key + '-31';
+    var anchor = anchorFor(state, end);
+    /* 这个月到底有没有数？
+     * 用户今天才对完账，那上个月他到底有多少钱我们是真不知道 ——
+     * 这时候显示 0 会让人以为"上个月我身无分文"，还不如老实说没数。 */
+    var list = state.balanceAnchors || [];
+    var known = !list.length || list[0].date <= end;
     var map = {};
     METHODS.forEach(function (m) {
-      var opening = toCentsSigned((state.openingBalances || {})[m]);
-      map[m] = { name: m, opening: opening, income: 0, spent: 0, amount: opening, count: 0 };
+      var base = toCentsSigned((anchor.amounts || {})[m]);
+      map[m] = { name: m, opening: base, since: anchor.date, income: 0, spent: 0, amount: base, count: 0 };
     });
 
     state.records.forEach(function (r) {
       if (r.date > end) return;
+      if (!afterAnchor(r, anchor)) return;   // 基准点那一刻之前的账，已经算进那个数里了
       var a = map[accountName(r.method)];   // accountName 保证一定落在 METHODS 里
       a.count += 1;
       if (r.type === 'income') { a.income += r.amount; a.amount += r.amount; }
       else { a.spent += r.amount; a.amount -= r.amount; }
     });
 
-    var list = METHODS.map(function (m) { return map[m]; });
-    var total = { name: '合计', opening: 0, income: 0, spent: 0, amount: 0, count: 0 };
-    list.forEach(function (a) {
+    var list2 = METHODS.map(function (m) { return map[m]; });
+    var total = { name: '合计', opening: 0, since: anchor.date, income: 0, spent: 0, amount: 0, count: 0, known: known };
+    list2.forEach(function (a) {
       total.opening += a.opening;
       total.income += a.income;
       total.spent += a.spent;
       total.amount += a.amount;
       total.count += a.count;
     });
-    return { list: list, total: total };
+    return { list: list2, total: total, anchor: { date: anchor.date, at: anchor.at || 0 }, known: known };
   }
 
   /** 总余额（所有账户加起来），首页那个"余额"用这个 */
@@ -1483,7 +1633,9 @@ body { display: flex; justify-content: center; }
       percent: hasBudget ? t.spent / eff.amount : 0,
       over: hasBudget ? t.spent > eff.amount : false,
       count: recordsOfMonth(state, key).length,
-      balance: balanceUpTo(state, key).amount
+      balance: balanceUpTo(state, key).amount,
+      /** false = 那会儿还没对过账，这个数算不出来（界面显示"—"而不是 0） */
+      balanceKnown: balanceUpTo(state, key).known
     };
   }
 
@@ -1537,8 +1689,9 @@ body { display: flex; justify-content: center; }
    */
   function exportPayload(state) {
     var dates = state.records.map(function (r) { return r.date; }).sort();
+    var bal = balanceUpTo(state, currentMonthKey());
     return {
-      app: '我的钱包',
+      app: '丸梓钱包',
       kind: BACKUP_KIND,
       version: BACKUP_VERSION,
       exportedAt: new Date().toISOString(),
@@ -1547,7 +1700,11 @@ body { display: flex; justify-content: center; }
         categories: state.categories.length,
         budgets: Object.keys(state.budgets).length,
         firstDate: dates.length ? dates[0] : null,
-        lastDate: dates.length ? dates[dates.length - 1] : null
+        lastDate: dates.length ? dates[dates.length - 1] : null,
+        /* 余额和它的基准日也写进摘要：界面靠这两个数提前告诉用户
+         * "这份备份里带着多少钱"，不然恢复完才发现余额没跟过来，就晚了 */
+        balance: bal.amount,
+        balanceDate: bal.since || null
       },
       data: JSON.parse(JSON.stringify(state))
     };
@@ -1574,7 +1731,7 @@ body { display: flex; justify-content: center; }
     var looksLikeBackup = raw.kind === BACKUP_KIND;
     var looksLikeState = Array.isArray(raw.records);
     if (!looksLikeBackup && !looksLikeState) {
-      return { ok: false, error: '这看起来不是「我的钱包」的备份' };
+      return { ok: false, error: '这看起来不是「丸梓钱包」的备份' };
     }
 
     // 一律过一遍 normalize()：手改坏的备份也不会把页面搞崩，坏记录会被丢掉
@@ -1589,7 +1746,11 @@ body { display: flex; justify-content: center; }
         categories: data.categories.length,
         budgets: Object.keys(data.budgets).length,
         firstDate: dates.length ? dates[0] : null,
-        lastDate: dates.length ? dates[dates.length - 1] : null
+        lastDate: dates.length ? dates[dates.length - 1] : null,
+        /* 余额从洗过的数据里现算，不看信封里的摘要 ——
+         * 这样连老备份（那时候摘要里还没有余额这一项）也能提前显示出来 */
+        balance: balanceUpTo(data, currentMonthKey()).amount,
+        balanceDate: anchorFor(data, currentMonthKey() + '-31').date
       }
     };
   }
@@ -1599,6 +1760,14 @@ body { display: flex; justify-content: center; }
    *   · 账目按 id 去重，已有的跳过 —— 所以同一份备份合并两次不会翻倍
    *   · 分类和预算只补缺的，不覆盖你现在的设置
    */
+  function byDateAt(a, b) {
+    if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+    var ra = (typeof a.rev === 'number') ? a.rev : -1;
+    var rb = (typeof b.rev === 'number') ? b.rev : -1;
+    if (ra !== rb) return ra - rb;
+    return (a.at || 0) - (b.at || 0);
+  }
+
   function mergeInto(state, incoming) {
     var haveRec = {}, haveCat = {};
     state.records.forEach(function (r) { haveRec[r.id] = true; });
@@ -1628,12 +1797,92 @@ body { display: flex; justify-content: center; }
       budgetsAdded += 1;
     });
 
+    /* 余额基准点也得合进来。
+     * 之前这里漏了它 —— 备份里明明带着余额，点「合并进来」却把它扔了，
+     * 用户恢复完发现余额没了还找不回来。（replaceData 那边是一直带着的，所以只有合并会丢。）
+     *
+     * 两台设备都自己设过余额的时候不能乱猜，所以规则写死：
+     *   本机这个基准点是空的、备份里有数  → 用备份的（这就是"恢复我的余额"）
+     *   两边都有数但不一样                → 保留本机的，另外把冲突报上去，让用户自己决定
+     *   备份里没有这个日期                → 直接加进来
+     */
+    var anchorsAdded = 0, balanceTaken = false, balanceConflict = '';
+    var local = {};
+    state.balanceAnchors.forEach(function (a) { local[a.date] = a; });
+
+    incoming.balanceAnchors.forEach(function (a) {
+      var inSum = sumAmounts(a.amounts);
+      var cur = local[a.date];
+      if (!cur) {
+        state.balanceAnchors.push(JSON.parse(JSON.stringify(a)));
+        local[a.date] = a;
+        anchorsAdded += 1;
+        if (inSum) balanceTaken = true;
+        return;
+      }
+      var curSum = sumAmounts(cur.amounts);
+      if (!curSum && inSum) {
+        cur.amounts = JSON.parse(JSON.stringify(a.amounts));
+        if (!cur.at) cur.at = a.at || 0;
+        balanceTaken = true;
+        return;
+      }
+      if (curSum && inSum && curSum !== inSum) {
+        balanceConflict = formatMoney(curSum) + '（本机） / ' + formatMoney(inSum) + '（备份）';
+      }
+    });
+    state.balanceAnchors.sort(byDateAt);
+
     return {
       recordsAdded: recordsAdded,
       recordsSkipped: recordsSkipped,
       categoriesAdded: categoriesAdded,
-      budgetsAdded: budgetsAdded
+      budgetsAdded: budgetsAdded,
+      anchorsAdded: anchorsAdded,
+      balanceTaken: balanceTaken,
+      balanceConflict: balanceConflict,
+      balance: balanceUpTo(state, currentMonthKey()).amount
     };
+  }
+
+  /* ---------------------------------------------------------------- 后悔药 */
+
+  /* 「恢复备份」「清空」这些操作是没法撤销的，点错一次数据就再也回不来 ——
+   * 用户已经碰上过一次了。所以每次动数据之前，先把当前状态原样存一份到别的 key 下，
+   * 界面上给他一个「恢复到之前」的按钮。只留最近 3 份：再多的意义不大，还占地方。 */
+  var UNDO_KEY = 'wallet.v1.undo';
+  var MAX_UNDO = 3;
+
+  function readUndo(storage) {
+    try {
+      var raw = JSON.parse(storage.getItem(UNDO_KEY) || '[]');
+      return Array.isArray(raw) ? raw : [];
+    } catch (e) { return []; }
+  }
+
+  function writeUndo(storage, list) {
+    var cut = list.slice(0, MAX_UNDO);
+    /* 存不下（配额满了）就把最老的挤掉重试，最后宁可一份都不留，
+     * 也不能因为"存快照"把正常的数据保存搞失败 */
+    for (var tries = 0; tries <= MAX_UNDO; tries++) {
+      try { storage.setItem(UNDO_KEY, JSON.stringify(cut)); return cut; }
+      catch (e) { cut = cut.slice(0, cut.length - 1); }
+    }
+    return [];
+  }
+
+  function pushUndo(storage, state, label) {
+    var entry = {
+      at: Date.now(),
+      label: label,
+      records: state.records.length,
+      balance: balanceUpTo(state, currentMonthKey()).amount,
+      data: JSON.stringify(state)
+    };
+    var list = readUndo(storage);
+    list.unshift(entry);
+    writeUndo(storage, list);
+    return entry;
   }
 
   /* ---------------------------------------------------------------- 钱包对象 */
@@ -1664,6 +1913,7 @@ body { display: flex; justify-content: center; }
         date: input.date,
         note: String(input.note == null ? '' : input.note).trim().slice(0, 60),
         method: String(input.method == null ? '' : input.method).trim().slice(0, 8),
+        rev: (state.rev += 1),
         createdAt: Date.now()
       };
       state.records.push(rec);
@@ -1756,20 +2006,105 @@ body { display: flex; justify-content: center; }
     }
 
     function clearAll() {
+      pushUndo(storage, state, '清空前的数据');
       state = defaultState();
       save();
       return state;
     }
 
-    /** 批量设置各账户的期初余额（只认 METHODS 里的账户名，没传的保持不变） */
+    /** 各账户的期初余额（老接口，保留）。等价于给 1970-01-01 那一刻立一个基准点。 */
     function setOpeningBalances(map) {
       map = map || {};
+      var list = state.balanceAnchors;
+      var base = null;
+      for (var i = 0; i < list.length; i++) if (list[i].date === ANCHOR_EPOCH) base = list[i];
+      if (!base) {
+        base = { date: ANCHOR_EPOCH, at: 0, rev: -1, amounts: openingBalancesZero() };
+        list.unshift(base);
+      }
       METHODS.forEach(function (m) {
         if (!has(map, m)) return;
-        state.openingBalances[m] = toCentsSigned(map[m]);
+        base.amounts[m] = toCentsSigned(map[m]);
       });
       save();
-      return state.openingBalances;
+      return cloneAmounts(base.amounts);
+    }
+
+    /**
+     * 「校准余额」：我在 date 这一天，各账户里实际有这么多钱。
+     * 这是界面上那个「现在各账户里有多少钱」按钮真正调的东西。
+     *
+     * 同一天再校准一次就覆盖同一天那一份（时刻取最新的）——
+     * 一天之内反复对账是常事，留一堆同一天的基准点只会让余额算不清。
+     */
+    function setBalanceAsOf(date, map) {
+      map = map || {};
+      var d = isISODate(date) ? date : todayISO();
+      var amounts = openingBalancesZero();
+      METHODS.forEach(function (m) { amounts[m] = toCentsSigned(map[m]); });
+      var kept = state.balanceAnchors.filter(function (a) { return a.date !== d; });
+      kept.push({ date: d, at: Date.now(), rev: state.rev, amounts: amounts });
+      kept.sort(byDateAt);
+      state.balanceAnchors = kept.slice(-MAX_ANCHORS);
+      save();
+      return { date: d, amounts: cloneAmounts(amounts), count: state.balanceAnchors.length };
+    }
+
+    /** 现在各账户里有多少钱（界面拿它来预填输入框） */
+    function balancesNow() {
+      var ab = accountBalances(state, currentMonthKey());
+      return {
+        date: ab.anchor.date,
+        at: ab.anchor.at,
+        total: ab.total.amount,
+        amounts: (function () {
+          var o = {};
+          ab.list.forEach(function (a) { o[a.name] = a.amount; });
+          return o;
+        })(),
+        list: ab.list
+      };
+    }
+
+    /** 有几个基准点、最后一个是什么时候定的（界面上说明用） */
+    function anchorInfo() {
+      var list = state.balanceAnchors;
+      var last = list[list.length - 1];
+      return {
+        count: list.length,
+        lastDate: last ? last.date : ANCHOR_EPOCH,
+        lastAt: last ? (last.at || 0) : 0,
+        custom: !!(list.length > 1 || (last && last.date !== ANCHOR_EPOCH))
+      };
+    }
+
+    /* ------------------------------------------------ 后悔药 */
+
+    function snapshot(label) { return pushUndo(storage, state, label || '手动存的一份'); }
+
+    function undoList() {
+      return readUndo(storage).map(function (e) {
+        return { at: e.at, label: e.label, records: e.records, balance: e.balance };
+      });
+    }
+
+    /** 恢复到某一份快照（按时间戳找）。恢复完这一份就从栈里拿掉，好接着往前撤。 */
+    function undoAt(at) {
+      var list = readUndo(storage);
+      var found = null;
+      var rest = [];
+      list.forEach(function (e) {
+        if (!found && e.at === at) { found = e; return; }
+        rest.push(e);
+      });
+      if (!found) return { ok: false };
+      var back;
+      try { back = normalize(JSON.parse(found.data)); }
+      catch (e) { return { ok: false }; }
+      state = back;
+      save();
+      writeUndo(storage, rest);
+      return { ok: true, label: found.label, records: state.records.length, balance: balanceUpTo(state, currentMonthKey()).amount };
     }
 
     /* ------------------------------------------------ 备份与恢复 */
@@ -1779,6 +2114,7 @@ body { display: flex; justify-content: center; }
 
     /** 合并：保留现有账目，把备份里的补进来（同 id 跳过），返回做了什么 */
     function mergeData(payload) {
+      pushUndo(storage, state, '合并备份前的数据');
       var info = mergeInto(state, normalize(unwrap(payload)));
       save();
       return info;
@@ -1786,12 +2122,14 @@ body { display: flex; justify-content: center; }
 
     /** 替换：清空现有数据，完全用备份覆盖 */
     function replaceData(payload) {
+      pushUndo(storage, state, '替换备份前的数据');
       state = normalize(unwrap(payload));
       save();
       return {
         records: state.records.length,
         categories: state.categories.length,
-        budgets: Object.keys(state.budgets).length
+        budgets: Object.keys(state.budgets).length,
+        balance: balanceUpTo(state, currentMonthKey()).amount
       };
     }
 
@@ -1805,12 +2143,18 @@ body { display: flex; justify-content: center; }
       deleteRecord: deleteRecord,
       setBudget: setBudget,
       setOpeningBalances: setOpeningBalances,
+      setBalanceAsOf: setBalanceAsOf,
+      balancesNow: balancesNow,
+      anchorInfo: anchorInfo,
       addCategory: addCategory,
       deleteCategory: deleteCategory,
       clearAll: clearAll,
       exportData: exportData,
       mergeData: mergeData,
-      replaceData: replaceData
+      replaceData: replaceData,
+      snapshot: snapshot,
+      undoList: undoList,
+      undoAt: undoAt
     };
   }
 
@@ -1833,6 +2177,15 @@ body { display: flex; justify-content: center; }
     toCentsSigned: toCentsSigned,
     accountName: accountName,
     openingBalancesZero: openingBalancesZero,
+    cloneAmounts: cloneAmounts,
+    sumAmounts: sumAmounts,
+    normalizeAnchors: normalizeAnchors,
+    anchorFor: anchorFor,
+    afterAnchor: afterAnchor,
+    ANCHOR_EPOCH: ANCHOR_EPOCH,
+    MAX_ANCHORS: MAX_ANCHORS,
+    UNDO_KEY: UNDO_KEY,
+    MAX_UNDO: MAX_UNDO,
     accountBalances: accountBalances,
     balanceUpTo: balanceUpTo,
     formatMoney: formatMoney,
@@ -1867,7 +2220,7 @@ body { display: flex; justify-content: center; }
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 </script>
 <script>
-/* 我的钱包 — 图表
+/* 丸梓钱包 — 图表
  *
  * 手写 SVG，不依赖任何外部库、不用联网（Chart.js 之类要从网上下载，断网就白屏）。
  * 两个图：
@@ -2000,7 +2353,7 @@ body { display: flex; justify-content: center; }
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 </script>
 <script>
-/* 我的钱包 — 界面逻辑
+/* 丸梓钱包 — 界面逻辑
  *
  * 分工：store.js 算账，charts.js 画图，这里只管"显示什么、点了会怎样"。
  * 所有会改数据的操作都通过 wallet.xxx()，改完自动存进 localStorage。
@@ -2030,8 +2383,8 @@ body { display: flex; justify-content: center; }
     statBalance: $('statBalance'), statBalanceLabel: $('statBalanceLabel'),
     accountList: $('accountList'), accountHint: $('accountHint'),
     methodBalance: $('methodBalance'),
-    openingList: $('openingList'), saveOpening: $('saveOpening'),
-    openingError: $('openingError'), openingHint: $('openingHint'),
+    balanceList: $('balanceList'), saveBalance: $('saveBalance'),
+    balanceError: $('balanceError'), balanceHint: $('balanceHint'),
     btnAddExpense: $('btnAddExpense'), btnAddIncome: $('btnAddIncome'),
     chartMonth: $('chartMonth'), donut: $('donut'), bars: $('bars'),
     recordCount: $('recordCount'), recordList: $('recordList'),
@@ -2053,6 +2406,7 @@ body { display: flex; justify-content: center; }
     importFile: $('importFile'), importText: $('importText'),
     importPreview: $('importPreview'), doMerge: $('doMerge'), doReplace: $('doReplace'),
     backupError: $('backupError'),
+    undoList: $('undoList'), undoError: $('undoError'),
     recordHint: $('recordHint'),
     toast: $('toast')
   };
@@ -2142,6 +2496,13 @@ body { display: flex; justify-content: center; }
 
     var isCur = viewMonth === W.currentMonthKey();
     el.statBalanceLabel.textContent = isCur ? '当前余额' : Number(viewMonth.slice(5, 7)) + '月底余额';
+    /* 对账之前那些月份没有数，显示"—"比显示 0 老实：
+     * 0 会让人以为"那会儿我身无分文"。 */
+    if (!s.balanceKnown) {
+      el.statBalance.textContent = '—';
+      el.statBalance.className = 'stat-value';
+      return;
+    }
     el.statBalance.textContent = signedMoney(s.balance);
     el.statBalance.className = 'stat-value' + (s.balance < 0 ? ' bad' : '');
   }
@@ -2150,6 +2511,12 @@ body { display: flex; justify-content: center; }
   function renderAccounts() {
     var ab = W.accountBalances(st(), viewMonth);
     el.accountHint.textContent = viewMonth === W.currentMonthKey() ? '现在' : W.monthLabel(viewMonth) + '底';
+
+    if (!ab.known) {
+      el.accountList.innerHTML = '<p class="acc-unknown"> ' + W.monthLabel(viewMonth) +
+        ' 那会儿还没对过账，每个账户里有多少钱没有数。<br>要看现在的余额，点上面的月份标签回到本月。</p>';
+      return;
+    }
 
     var rows = ab.list.map(function (a) {
       return '<div class="account-row">' +
@@ -2460,20 +2827,34 @@ body { display: flex; justify-content: center; }
     else hint = '还没设过预算。先设一个，记账的时候就能看到"还剩多少"。';
     el.budgetHint.textContent = hint;
 
-    // 各账户期初余额
-    var opens = s.openingBalances || {};
-    el.openingList.innerHTML = W.METHODS.map(function (m) {
-      var v = W.toCentsSigned(opens[m]);
+    /* 现在各账户里有多少钱。
+     * 这里填的是"此刻的实际余额"，不是"一开始有多少钱" ——
+     * 用户脑子里就是这个数，让他去倒推期初余额纯属为难人。
+     * 存下来的是这一刻的基准点，之后每记一笔，余额自动跟着加减。 */
+    var nowBal = wallet.balancesNow();
+    var info = wallet.anchorInfo();
+    /* 每个账户下面那句要写清楚"从什么时候算起"：
+     * 对过账之后，对账之前那些账已经在填的数里了，再列出来会让人以为记重了。 */
+    var post = info.custom ? '对账之后' : '记账以来';
+    el.balanceList.innerHTML = W.METHODS.map(function (m) {
+      var a = nowBal.list.filter(function (x) { return x.name === m; })[0] || { amount: 0, count: 0, income: 0, spent: 0 };
+      var detail = a.count
+        ? '（' + post + '：收入 ' + W.formatMoney(a.income) + '、支出 ' + W.formatMoney(a.spent) + '，共 ' + a.count + ' 笔）'
+        : '（' + post + '还没记过这个账户的账）';
       return '<div class="opening-row">' +
         '<span class="opening-name">' + W.esc(m) + '</span>' +
-        '<input class="text-input" type="text" inputmode="decimal" data-opening="' + W.esc(m) + '" ' +
-        'value="' + (v ? W.formatMoney(v).replace(/,/g, '') : '') + '" placeholder="0" ' +
-        'aria-label="' + W.esc(m) + '期初余额">' +
+        '<input class="text-input" type="text" inputmode="decimal" data-balance="' + W.esc(m) + '" ' +
+        'value="' + (a.amount ? W.formatMoney(a.amount).replace(/,/g, '') : '') + '" placeholder="0" ' +
+        'aria-label="' + W.esc(m) + '现在有多少钱">' +
+        '<span class="opening-sub">' + W.esc(detail) + '</span>' +
         '</div>';
     }).join('');
-    var ab = W.accountBalances(s, viewMonth);
-    el.openingHint.textContent = '各账户余额合计 ' + signedMoney(ab.total.amount) +
-      '（截至 ' + (viewMonth === W.currentMonthKey() ? '现在' : W.monthLabel(viewMonth) + '底') + '）。';
+    var when = info.lastAt ? new Date(info.lastAt).toLocaleString('zh-CN', { hour12: false }) : '';
+    el.balanceHint.textContent = '各账户合计 ' + signedMoney(nowBal.total) + '。' +
+      (info.custom
+        ? '上次对账：' + (when || info.lastDate) + '。'
+        : '还没对过账，现在各账户都按 0 算。') +
+      ' 对完账再记的每一笔，都会自动在这个数上加或减。改这里不会翻动以前的月份。';
 
     el.catManage.innerHTML = s.categories.map(function (c) {
       var n = s.records.filter(function (r) { return r.categoryId === c.id; }).length;
@@ -2504,14 +2885,36 @@ body { display: flex; justify-content: center; }
 
   function openBackup() {
     setError(el.backupError, '');
+    setError(el.undoError, '');
     el.importText.value = '';
     el.importFile.value = '';
     el.exportText.value = backupJson();
+    renderUndo();
     renderImportPreview();
     el.backup.hidden = false;
   }
 
   function closeBackup() { el.backup.hidden = true; }
+
+  /** 「退回上一步」：列出自动存下来的快照，点一个就退回去 */
+  function renderUndo() {
+    var list = wallet.undoList();
+    if (!list.length) {
+      el.undoList.innerHTML = '<p class="undo-none">还没有可以退回的存档。下一次「合并 / 替换 / 清空」之前会自动存一份。</p>';
+      return;
+    }
+    el.undoList.innerHTML = list.map(function (e) {
+      var when = new Date(e.at).toLocaleString('zh-CN', { hour12: false });
+      return '<div class="undo-row">' +
+        '<div class="undo-what">' +
+        '<div>' + W.esc(e.label || '存档') + '</div>' +
+        '<div class="undo-when">' + W.esc(when) + ' · ' + e.records + ' 笔账 · 余额 ' + signedMoney(e.balance) + '</div>' +
+        '</div>' +
+        '<button class="btn btn-ghost btn-sm" data-undo="' + e.at + '">退回去</button>' +
+        '</div>';
+    }).join('');
+  }
+
 
   /** 校验当前粘贴/选中的备份，并把它里面有什么显示出来 */
   function renderImportPreview() {
@@ -2528,10 +2931,14 @@ body { display: flex; justify-content: center; }
 
     var m = parsed.meta;
     var when = m.exportedAt ? m.exportedAt.slice(0, 19).replace('T', ' ') : '';
+    var age = m.balanceDate && m.balanceDate !== W.ANCHOR_EPOCH
+      ? '（' + W.esc(m.balanceDate) + ' 对账的数）'
+      : (m.balance ? '（早先记下的）' : '');
     el.importPreview.innerHTML =
       '这份备份里有 <b>' + m.records + '</b> 笔账' +
       (m.firstDate ? '（' + W.esc(m.firstDate) + ' ~ ' + W.esc(m.lastDate) + '）' : '') +
-      '、<b>' + m.categories + '</b> 个分类、<b>' + m.budgets + '</b> 个月的预算。' +
+      '、<b>' + m.categories + '</b> 个分类、<b>' + m.budgets + '</b> 个月的预算，' +
+      '余额 <b>' + signedMoney(m.balance) + '</b>' + age + '。' +
       (when ? '<br>导出时间：' + W.esc(when) : '');
     return parsed;
   }
@@ -2545,6 +2952,7 @@ body { display: flex; justify-content: center; }
   function afterRestore() {
     renderAll();
     renderSettings();
+    renderUndo();
     el.exportText.value = backupJson();
   }
 
@@ -2651,27 +3059,28 @@ body { display: flex; justify-content: center; }
       toast(W.monthLabel(viewMonth) + '不再显示预算，支出收入照常统计');
     });
 
-    // 设置：各账户期初余额
-    el.saveOpening.addEventListener('click', function () {
-      var inputs = el.openingList.querySelectorAll('[data-opening]');
+    // 设置：现在各账户里有多少钱（对账）
+    el.saveBalance.addEventListener('click', function () {
+      var inputs = el.balanceList.querySelectorAll('[data-balance]');
       var map = {};
       var bad = null;
       Array.prototype.forEach.call(inputs, function (inp) {
-        var m = inp.getAttribute('data-opening');
+        var m = inp.getAttribute('data-balance');
         var raw = String(inp.value == null ? '' : inp.value).trim();
-        var cents = raw === '' ? 0 : W.parseSignedAmount(raw);   // 留空 = 0
+        var cents = raw === '' ? 0 : W.parseSignedAmount(raw);   // 留空 = 0，也就是这个账户空了
         if (cents === null) { if (!bad) bad = m; return; }
         map[m] = cents;
       });
       if (bad) {
-        setError(el.openingError, '「' + bad + '」填的不是有效金额。可以写 0、-50、1200.50。');
+        setError(el.balanceError, '「' + bad + '」填的不是有效金额。可以写 0、-50、1200.50。');
         return;
       }
-      wallet.setOpeningBalances(map);
-      setError(el.openingError, '');
+      wallet.setBalanceAsOf(W.todayISO(), map);
+      setError(el.balanceError, '');
       renderSettings();
       renderAll();
-      toast('期初余额已保存，各账户余额跟着更新了');
+      var now = wallet.balancesNow();
+      toast('记下了：各账户合计 ' + signedMoney(now.total) + '，以后每记一笔都自动跟着变');
     });
 
     // 设置：分类
@@ -2711,7 +3120,7 @@ body { display: flex; justify-content: center; }
 
     // 设置：清空
     el.clearAll.addEventListener('click', function () {
-      if (!window.confirm('确定清空所有数据？\n\n所有账目、预算、自己加的分类都会没掉，而且没法恢复。')) return;
+      if (!window.confirm('确定清空所有数据？\n\n所有账目、预算、自己加的分类都会没掉。\n（动手之前会自动存一份，事后能在「退回上一步」里找回来。）')) return;
       if (!window.confirm('真的确定吗？这是最后一步确认。')) return;
       wallet.clearAll();
       viewMonth = W.currentMonthKey();
@@ -2719,7 +3128,8 @@ body { display: flex; justify-content: center; }
       setError(el.budgetError, '');
       renderSettings();
       renderAll();
-      toast('数据已清空，可以从头开始记了');
+      renderUndo();
+      toast('数据已清空。反悔的话，备份页里「退回上一步」能找回来');
     });
 
     // 备份与恢复
@@ -2736,7 +3146,7 @@ body { display: flex; justify-content: center; }
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url;
-        a.download = '我的钱包-备份-' + W.todayISO() + '.json';
+        a.download = '丸梓钱包-备份-' + W.todayISO() + '.json';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -2772,6 +3182,25 @@ body { display: flex; justify-content: center; }
       renderImportPreview();
     });
 
+    // 退回上一步：点一个存档，退回去
+    el.undoList.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('[data-undo]') : null;
+      if (!btn) return;
+      var at = Number(btn.getAttribute('data-undo'));
+      var list = wallet.undoList();
+      var hit = null;
+      list.forEach(function (x) { if (x.at === at) hit = x; });
+      if (!hit) return;
+      if (!window.confirm('退回「' + hit.label + '」？\n\n' + hit.records + ' 笔账，余额 ' +
+        signedMoney(hit.balance) + '。\n现在这一份会被换掉。')) return;
+      var res = wallet.undoAt(at);
+      setError(el.undoError, res.ok ? '' : '这份存档读不出来了，可能没存全。');
+      if (!res.ok) return;
+      jumpToLatestMonth();
+      afterRestore();
+      toast('已退回「' + res.label + '」：' + res.records + ' 笔账，余额 ' + signedMoney(res.balance));
+    });
+
     el.importFile.addEventListener('change', function () {
       var f = el.importFile.files && el.importFile.files[0];
       if (!f) return;
@@ -2797,19 +3226,26 @@ body { display: flex; justify-content: center; }
       var msg = '已合并：新增 ' + info.recordsAdded + ' 笔账';
       if (info.recordsSkipped) msg += '，跳过 ' + info.recordsSkipped + ' 笔本来就有的';
       if (info.categoriesAdded) msg += '，补了 ' + info.categoriesAdded + ' 个分类';
-      toast(msg + '。现在一共 ' + st().records.length + ' 笔');
+      msg += '。现在一共 ' + st().records.length + ' 笔，余额 ' + signedMoney(info.balance);
+      if (info.balanceTaken) msg += '（备份里的余额也一起带过来了）';
+      if (info.balanceConflict) {
+        setError(el.backupError, '两边都自己对过账，余额不一样：' + info.balanceConflict +
+          '。现在按本机的算。要用备份里的数，去设置里「现在各账户里有多少钱」填一遍就行。');
+      }
+      toast(msg);
     });
 
     el.doReplace.addEventListener('click', function () {
       var parsed = renderImportPreview();
       if (!parsed) { setError(el.backupError, W.parseBackup(el.importText.value).error); return; }
-      if (!window.confirm('完全替换？\n\n这台设备上现在的所有账目、预算、分类都会被删掉，只用备份里的内容。')) return;
-      if (!window.confirm('真的确定吗？换掉之后旧数据就找不回来了。')) return;
+      if (!window.confirm('完全替换？\n\n这台设备上现在的所有账目、预算、分类都会被删掉，只用备份里的内容。\n（动手之前会自动存一份，事后能在「退回上一步」里找回来。）')) return;
+      if (!window.confirm('真的确定吗？换掉之后当前这些数据就不在首页了。')) return;
       var info = wallet.replaceData(parsed.data);
       setError(el.backupError, '');
       jumpToLatestMonth();
       afterRestore();
-      toast('已用备份替换：现在有 ' + info.records + ' 笔账、' + info.budgets + ' 个月的预算');
+      toast('已用备份替换：现在有 ' + info.records + ' 笔账、' + info.budgets +
+        ' 个月的预算，余额 ' + signedMoney(info.balance));
     });
 
     // Esc 关闭弹层
